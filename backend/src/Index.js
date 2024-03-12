@@ -4,6 +4,10 @@ const UserRegisterController = require('../Controller/User/UserRegisterControlle
 const BookController = require('../Controller/User/book');
 const cors = require('cors');
 const ReserveController = require('../Controller/User/Reserve');
+const UserLoginController = require('../Controller/User/UserLoginController');
+
+
+
 
 const app = express();
 const port = 5002;
@@ -23,19 +27,17 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
+
+
 // Use the correct function name UserRegisterController
 UserRegisterController(app, db);
 BookController(app, db);
-ReserveController(app,db);
+ReserveController(app, db);
+
+app.use('/',UserLoginController (db)); 
 
 // Check Database Connection
 // Connect to the database
-db.getConnection().then(connection => {
-  console.log('Connected to MySQL database');
-  connection.release(); // Release the connection back to the pool
-}).catch(error => {
-  throw error;
-});
 
 // Start the server and listen on the specified port
 app.listen(port, () => {

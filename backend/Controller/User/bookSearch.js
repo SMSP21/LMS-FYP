@@ -1,46 +1,66 @@
+ 
 const express = require('express');
-const mysql = require('mysql2/promise');
-
+const mysql = require('mysql2');
+ 
 const app = express();
-const PORT = 5002;
-
-app.use(express.json());
-
-// MySQL database configuration
-const dbConfig = {
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'fyp',
-};
-
-// Create a connection pool
-const pool = mysql.createPool(dbConfig);
-
-// Define a route for book search
-app.get('/search', async (req, res) => {
-  const { query } = req.query;
-
-  try {
-    // Acquire a connection from the pool
-    const connection = await pool.getConnection();
-
-    // Use the connection to execute the query
-    const [rows] = await connection.query(
-      'SELECT * FROM books WHERE title LIKE ? OR author LIKE ?',
-      [`%${query}%`, `%${query}%`]
-    );
-
-    // Release the connection back to the pool
-    connection.release();
-
-    res.json(rows);
-  } catch (error) {
-    console.error('Error during book search:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+const port = 5002;
+ 
+// MySQL connection
+const db =
+    mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '',
+        database: 'fyp',
+    });
+ 
+// Connect to MySQL
+db.connect(err => {
+    if (err) {
+        console.error('Error connecting to MySQL:', err);
+    } else {
+        console.log('Connected to MySQL');
+    }
 });
-
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${5002}`);
+ 
+// Search endpoint
+app.get('/search', (req, res) => {
+    const searchTerm = req.query.term;
+    if (!searchTerm) {
+        return res.status(400)
+            .json(
+                {
+                    error: 'Search term is required'
+                }
+            );
+    }
+ 
+    const query = `
+    SELECT * FROM items
+    WHERE alternateTitle LIKE ? OR author LIKE ?
+  `;
+ 
+    // Use '%' to perform a partial match
+    const searchValue = `%${searchTerm}%`;
+ 
+    db.query(query, [searchValue, searchValue],
+        (err, results) => {
+            if (err) {
+                console
+                    .error('Error executing search query:', err);
+                return res.status(500)
+                    .json(
+                        {
+                            error: 'Internal server error'
+                        });
+            }
+ 
+            res.json(results);
+        });
+});
+ 
+// Start the server
+app.listen(port, () => {
+    console.log(`Server is running on 
+        http://localhost:${port}`);
 });

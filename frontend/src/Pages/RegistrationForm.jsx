@@ -12,7 +12,7 @@ function RegistrationForm() {
     userUserName: '',
     userPassword: '',
     userConfirmPassword: '',
-    userType:'',
+    userType:'member',
   }); 
 
   const handleChange = (e) => {

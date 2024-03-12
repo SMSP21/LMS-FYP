@@ -1,45 +1,63 @@
-const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const express = require('express');
+const authenticateToken = require('../auth');
 
-const UserLoginController = (app, db) => {
-  app.post("/login/user", async (req, res) => {
-    const { userUserName, userPassword } = req.body;
+const UserLoginController = (db) => {
+  const router = express.Router();
 
-    const loginUserQuery =
-      "SELECT user_id, userPassword FROM user_login WHERE userUserName = ?";
+  // ... (unchanged code)
+
+  // Login route
+  router.post('/user/login', async (req, res) => {
+    const username = req.body.username;
+    console.log(username)
+    const enteredPassword = req.body.password;
 
     try {
-      const userLoginResult = await db.query(loginUserQuery, [userUserName]);
+      // Use the provided MySQL connection
+      const data = `SELECT ul.user_id, ul.userPassword, ul.userUserName, ud.userType FROM user_login ul JOIN user_details ud ON ul.user_id = ud.user_id WHERE ul.userUserName = '${username}'`
+      const [results, fields] = await db.query(data,
+        [username]
+      );
 
-      if (userLoginResult.length === 0 || !userLoginResult[0]) {
-        // User not found
-        res.status(404).json({ success: false, message: "User not found" });
-        return;
+      console.log(results)
+
+      // Handle the query results
+      if (!results || results.length === 0) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials: User not found' });
+      }
+      
+      const storedPassword = results[0].userPassword;
+      console.log(storedPassword,"0-0-0-0-0-0-0-0-")
+
+      // console.log(userPassword,"-0-0-0-0-0-0-0-0-0-0-0-0-0-0--0-0-0-0-")
+      if (enteredPassword !== storedPassword) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials: Incorrect password' });
       }
 
-      const storedPasswordHash = userLoginResult[0].userPassword;
+      // If the credentials are valid, generate a JWT token
+      const userId = results[0].user_id;
+      const userRole = results[0].userRole;
 
-      // Check if storedPasswordHash is defined before comparing
-      if (storedPasswordHash !== undefined) {
-        // Compare hashed passwords using bcrypt
-        const passwordMatch = await bcrypt.compare(userPassword, storedPasswordHash);
-
-        if (passwordMatch) {
-          // Password is correct
-          const userId = userLoginResult[0].user_id;
-          res.status(200).json({ success: true, message: "Login successful", userId });
-        } else {
-          // Incorrect password
-          res.status(401).json({ success: false, message: "Incorrect password" });
-        }
-      } else {
-        // Undefined storedPasswordHash
-        res.status(500).json({ success: false, message: "Internal Server Error" });
+      const secretKey = '9d9d667f8473686b29d597dd83c49195e886231d61b51bed0067db2780b2ef78';
+      if (!secretKey) {
+        console.error('JWT secret key not found');
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
       }
-    } catch (err) {
-      console.error('Error during login:', err);
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+
+      const token = jwt.sign({ userId, username, userRole }, secretKey, {
+        expiresIn: '1w', // Token expiration time (adjust as needed)
+      });
+
+      // Send the token as part of the response along with additional user data
+      res.status(200).json({ success: true, message: 'Login successful', token, userData: { username, userRole } });
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
   });
+
+  return router;
 };
 
 module.exports = UserLoginController;
