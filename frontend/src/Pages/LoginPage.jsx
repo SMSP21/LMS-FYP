@@ -1,35 +1,42 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import onlinelibrary from '../assets/onlineLibrary1.png';
 import rectangle3 from '../assets/rectangle3.jpeg';
 
 const LoginPage = () => {
-  const [userUserName, setUserUserName] = useState('');
-  const [userPassword, setUserPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:5002/login/user', {
-        userUserName,
-        userPassword,
+      const response = await axios.post('http://localhost:5002/user/login', {
+        username,
+        password,
       });
 
-      const { success, message, userId } = response.data;
+      const { success, message } = response.data;
 
       if (success) {
-        console.log('Login successful! User ID:', userId);
-        // Navigate to the dashboard or another route
-        // You can use useHistory here if needed
+        // Successful login
+        console.log('Login successful');
+        navigate('/staff-dashboard'); // Navigate to StaffDashboard upon successful login
       } else {
-        // Show the error message using toast
-        toast.error(message);
+        // Login failed
+        setError(message);
       }
     } catch (error) {
-      console.error('Error during login:', error);
-      toast.error('Internal Server Error. Please try again later.');
+      console.error('Error:', error);
+    
+      if (error.response && error.response.status === 401) {
+        setError('Invalid credentials: Please check your username and password.');
+      } else {
+        setError('Internal Server Error');
+      }
     }
   };
 
@@ -58,7 +65,7 @@ const LoginPage = () => {
                       className="form-control"
                       placeholder="Username"
                       aria-label="Username"
-                      onChange={(e) => setUserUserName(e.target.value)}
+                      onChange={(e) => setUsername(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
@@ -71,7 +78,7 @@ const LoginPage = () => {
                       className="form-control"
                       placeholder="Password"
                       aria-label="Password"
-                      onChange={(e) => setUserPassword(e.target.value)}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
                   <button type="button" className="login-button" onClick={handleLogin}>
@@ -233,6 +240,7 @@ const LoginPage = () => {
           color: black;
         }
       `}</style>
+
     </>
   );
 }

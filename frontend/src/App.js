@@ -11,7 +11,7 @@ import BookSearch from './Pages/BookSearch';
 import MemberLogin from './Pages/MemberLogin';
 import PlaceReservation from './Pages/PlaceReservation';
 import Payement from './Pages/Payement';
-import AddBook from './Pages/AddBook';
+import BookController from './Pages/Addbooks.jsx';
 
 const stripePromise = loadStripe('your_stripe_publishable_key');
 
@@ -25,12 +25,13 @@ function App() {
           <Route path="/member" element={<MemberLogin />} />
           <Route path="/Registration" element={<Registration />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/StaffDashboard" element={<StaffDashboard />} />
+          <Route path="/staff-dashboard"  element={<StaffDashboard />} />
+        
           <Route path="/Signout" element={<HomePage />} />
           <Route path="/MemberDashboard" element={<MemberDashboard />} />
           <Route path="/book-search" element={<BookSearch />} />
           <Route path="/Place-reservations" element={<PlaceReservation />} />
-          <Route path="/add-books" element={<AddBook />} />
+          <Route path="/add-books" element={< BookController/>} /> 
           <Route
             path="/Payement"
             element={

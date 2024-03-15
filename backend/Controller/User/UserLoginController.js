@@ -1,11 +1,8 @@
-const jwt = require('jsonwebtoken');
 const express = require('express');
-const authenticateToken = require('../auth');
+
 
 const UserLoginController = (db) => {
   const router = express.Router();
-
-  // ... (unchanged code)
 
   // Login route
   router.post('/user/login', async (req, res) => {
@@ -35,22 +32,8 @@ const UserLoginController = (db) => {
         return res.status(401).json({ success: false, message: 'Invalid credentials: Incorrect password' });
       }
 
-      // If the credentials are valid, generate a JWT token
-      const userId = results[0].user_id;
-      const userRole = results[0].userRole;
-
-      const secretKey = '9d9d667f8473686b29d597dd83c49195e886231d61b51bed0067db2780b2ef78';
-      if (!secretKey) {
-        console.error('JWT secret key not found');
-        return res.status(500).json({ success: false, message: 'Internal Server Error' });
-      }
-
-      const token = jwt.sign({ userId, username, userRole }, secretKey, {
-        expiresIn: '1w', // Token expiration time (adjust as needed)
-      });
-
-      // Send the token as part of the response along with additional user data
-      res.status(200).json({ success: true, message: 'Login successful', token, userData: { username, userRole } });
+      // Send success message without issuing a token
+      res.status(200).json({ success: true, message: 'Login successful' });
     } catch (error) {
       console.error('Error:', error);
       res.status(500).json({ success: false, message: 'Internal Server Error' });
