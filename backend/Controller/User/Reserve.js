@@ -1,25 +1,20 @@
-// Defining the ReserveController function that takes 'app' and 'db' as parameters
+// Define the ReserveController function that takes 'app' and 'db' as parameters
 const ReserveController = (app, db) => {
-  
   // Handling POST requests to "/reservebook/:bookId" endpoint for book reservation
   app.post("/reservebook/:bookId", async (req, res) => {
     try {
       // Extracting memberId, rawBookId, and parsing bookId from the request
       const memberId = req.body.memberId; // Assuming you have a way to identify the member making the reservation
       const rawBookId = req.params.bookId; // Get the raw bookId before parsing
+      console.log('Received rawBookId:', rawBookId); // Log rawBookId for debugging
       const bookId = parseInt(rawBookId, 10); // Parse the bookId to a number here
-
-      // Log rawBookId for debugging
-      console.log('Received rawBookId:', rawBookId);
+      console.log('Parsed bookId:', bookId); // Log parsed bookId for debugging
 
       // Ensure bookId is not NaN
       if (isNaN(bookId)) {
         console.error('Invalid BookId:', bookId);
         return res.status(400).json({ success: false, message: "Invalid BookId" });
       }
-
-      // Log parsedBookId for debugging
-      console.log('Received and parsed bookId:', bookId);
 
       // Query the database to check if the book with the specified bookId exists
       const [existingBook] = await db.query("SELECT * FROM books WHERE id = ?", [bookId]);
@@ -94,5 +89,5 @@ const ReserveController = (app, db) => {
   });
 };
 
-// Exporting the ReserveController function for external use
+// Export the ReserveController function for external use
 module.exports = ReserveController;

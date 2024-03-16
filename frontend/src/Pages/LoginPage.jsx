@@ -9,7 +9,6 @@ import rectangle3 from '../assets/rectangle3.jpeg';
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -27,15 +26,15 @@ const LoginPage = () => {
         navigate('/staff-dashboard'); // Navigate to StaffDashboard upon successful login
       } else {
         // Login failed
-        setError(message);
+        toast.error(message); // Display error message as a toast
       }
     } catch (error) {
       console.error('Error:', error);
     
       if (error.response && error.response.status === 401) {
-        setError('Invalid credentials: Please check your username and password.');
+        toast.error('Invalid credentials: Please check your username and password.');
       } else {
-        setError('Internal Server Error');
+        toast.error('Internal Server Error');
       }
     }
   };
@@ -93,7 +92,15 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
-      <ToastContainer />
+      <ToastContainer /> {/* ToastContainer for displaying notifications */}
+      <style jsx>{`
+        /* Your CSS styles */
+      `}</style>
+  
+
+
+
+
       <style jsx>{`
         .header-container {
           position: relative;

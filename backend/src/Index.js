@@ -5,8 +5,8 @@ const BookController = require('../Controller/User/book');
 const cors = require('cors');
 const ReserveController = require('../Controller/User/Reserve');
 const UserLoginController = require('../Controller/User/UserLoginController');
-
-
+const BookUpdate = require('../Controller/User/updatebook');
+const BookDelete = require('../Controller/User/deletebook');
 
 
 const app = express();
@@ -33,7 +33,8 @@ const db = mysql.createPool({
 UserRegisterController(app, db);
 BookController(app, db);
 ReserveController(app, db);
-
+BookUpdate(app, db);
+BookDelete(app, db);
 app.use('/',UserLoginController (db)); 
 
 // Check Database Connection

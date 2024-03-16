@@ -5,11 +5,10 @@ import onlinelibrary from "../assets/onlineLibrary1.png";
 function StaffDashboard() {
   const panelItems = [
     { key: 1, label: "Add Books", altText: "Add books to library", route: "/add-books" },
-    { key: 2, label: "Book Search", altText: "Search for books", route: "/book-search" },
+    { key: 2, label: "Book Search", altText: "Search for books", route: "/book-searchs" },
     { key: 3, label: "Book Update", altText: "Update books information", route: "/book-update" },
     { key: 4, label: "View Reservations", altText: "View current reservations", route: "/view-reservations" },
-    { key: 5, label: "Statistics", altText: "View library statistics", route: "/statistics" },
-    { key: 6, label: "Signout", altText: "Sign out of the library system", route: "/Signout" }
+    
   ];
 
   return (
