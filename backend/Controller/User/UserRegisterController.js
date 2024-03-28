@@ -23,17 +23,21 @@ const UserRegisterController = (app, db) => {
         userType
       } = req.body;
 
-      // Validate username
-      if (!userUserName || typeof userUserName !== 'string' || userUserName.trim() === '') {
-        return res.status(400).json({ success: false, message: "Invalid or missing username" });
+      // Validate userType
+      if (userType !== 'staff' && userType !== 'member') {
+        return res.status(400).json({ success: false, message: "Invalid user type. User type must be 'staff' or 'member'" });
       }
 
       // Check if the user username already exists in the database
-      const existingUser = await query('SELECT * FROM user_login WHERE userUserName = ?', [userUserName]);
-
-      // If the username is already taken, return an error response
-      if (existingUser.length > 0) {
+      const existingUsername = await query('SELECT * FROM user_login WHERE userUserName = ?', [userUserName]);
+      if (existingUsername.length > 0) {
         return res.status(400).json({ success: false, message: "Username already exists" });
+      }
+
+      // Check if the user email already exists in the database
+      const existingEmail = await query('SELECT * FROM user_details WHERE userEmail = ?', [userEmail]);
+      if (existingEmail.length > 0) {
+        return res.status(400).json({ success: false, message: "Email already exists" });
       }
 
       // Start a new database transaction for each registration

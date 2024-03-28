@@ -1,193 +1,134 @@
-// Import necessary modules
 import React, { useState } from "react";
 import axios from 'axios';
 import { Link } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import onlinelibrary from "../assets/onlineLibrary1.png";
-import profileIcon from "../assets/profileIcon.jpg"; // Import your profile icon image
+import profileIcon from "../assets/profileIcon.jpg";
 
-const BookSearchS = () => {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [showSearchPopup, setShowSearchPopup] = useState(false);
-  const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const [userData, setUserData] = useState(null); // Add state to store user data
+// BookDetails Component
+function BookDetails({ bookId, onDelete }) {
+  const handleDeleteBook = async () => {
+    try {
+      await axios.delete(`http://localhost:5002/books/${bookId}`);
+      toast.success('Book deleted successfully!');
+      onDelete(bookId); // Notify the parent component about the deletion
+    } catch (error) {
+      toast.error('Error deleting book');
+    }
+  };
+
+  return (
+    <div>
+      <button className="deleteButton" onClick={handleDeleteBook}>Delete Book</button>
+    </div>
+  );
+}
+
+const SearchComponent = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchOption, setSearchOption] = useState('name');
 
   const handleSearch = async () => {
     try {
-      const response = await axios.get(`http://localhost:5002/search?query=${query}`);
-      setResults(response.data);
-      setShowSearchPopup(true); // Show the search popup after fetching results
+      let url;
+      if (searchOption === 'id') {
+        url = `http://localhost:5002/books/${searchTerm}`;
+      } else {
+        url = 'http://localhost:5002/search';
+      }
+      const response = await axios.post(url, { searchTerm, searchOption });
+      setSearchResults(response.data);
+      if (response.data.length === 0) {
+        toast.info('No books found');
+      }
     } catch (error) {
-      console.error('Error during search:', error);
-      // Handle errors or display a user-friendly message
+      toast.error('Error searching for books');
+      setSearchResults([]);
     }
   };
-  const handleProfileClick = async () => {
-    try {
-      // Fetch user profile data
-      const response = await axios.get('http://localhost:5002/profile'); // Replace with your endpoint
-      setUserData(response.data);
-      setShowProfilePopup(true);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      // Handle errors or display a user-friendly message
-    }
-  };
-  const buttons = [
-    { id: "AddBook", text: "Add Books", route: "/add-books"},
-    { id: "BookSearch", text: "Book Search"  },
-    { id: "BookUpdate", text: "Book Update", route: "/book-update" },
-    { id: "ViewReservation", text: "View Reservation", route: "/view-reservations" },
-    { id: "logout", text: "Logout", route: "/Signout" }
-  ];
 
-  const closeProfilePopup = () => {
-    setShowProfilePopup(false);
-  };
-
-  const closeSearchPopup = () => {
-    setShowSearchPopup(false);
+  const handleDelete = (deletedBookId) => {
+    setSearchResults(searchResults.filter(book => book.id !== deletedBookId));
   };
 
   return (
     <>
-      
-        <div className="titleAndProfile">
-          <h1 className="title">Library Management System</h1>
-          {/* Profile icon at the top right */}
-          <div className="profileIcon" onClick={() => setShowProfilePopup(true)}>
-            <img src={profileIcon} alt="Profile Icon" />
-          </div>
+      <div className="titleAndProfile">
+        <h1 className="title">Library Management System</h1>
+        <div className="profileIcon">
+          <img src={profileIcon} alt="Profile Icon" />
         </div>
-      
+      </div>
 
       <img src={onlinelibrary} alt="" className="backgroundImage" />
       <section className="banner">
         <div className="wrapper">
           <header className="header">
             <nav className="navigationContainer">
-              {buttons.map((button) => (
-                <Link key={button.id} to={button.route || "/"}>
-                  <button
-                    className="menuButton"
-                    onClick={button.onClick || (() => {})}
-                  >
-                    {button.text}
-                  </button>
-                </Link>
-              ))}
+              <Link to="/add-books"><button className="menuButton">Add Books</button></Link>
+              <Link to="/book-search"><button className="menuButton">Book Search</button></Link>
+              <Link to="/book-update"><button className="menuButton">Book Update</button></Link>
+              <Link to="/view-reservations"><button className="menuButton">View Reservation</button></Link>
+              <Link to="/Signout"><button className="menuButton">Logout</button></Link>
             </nav>
           </header>
           <main className="mainContent">
             <section className="searchSection">
-              <h2>Books Search</h2>
-              <form className="searchForm">
-                <label htmlFor="bookName" className="visually-hidden">
-                  Book name
-                </label>
-                <input
-                  type="text"
-                  id="bookName"
-                  className="textInput"
-                  placeholder="Book name"
-                  aria-label="Book name"
-                />
-                <button
-                  type="button"
-                  className="searchButton"
-                  onClick={() => setShowSearchPopup(true)}
-                >
-                  Search
-                </button>
-              </form>
-              <form className="searchForm">
-                <label htmlFor="bookId" className="visually-hidden">
-                  Author
-                </label>
-                <input
-                  type="text"
-                  id="author"
-                  className="textInput"
-                  placeholder="Author"
-                  aria-label="Author"
-                />
-              </form>
-              <form className="searchForm">
-                <label htmlFor="authorName" className="visually-hidden">
-                  Shelf
-                </label>
-                <input
-                  type="text"
-                  id="shelf"
-                  className="textInput"
-                  placeholder="Shelf"
-                  aria-label="Shelf"
-                />
-              </form>
-            
+              <h2 className="searchHeader">Search Books</h2>
+              <div className="searchContainer">
+                <div className="searchInput">
+                  <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Enter search term" />
+                  <select value={searchOption} onChange={(e) => setSearchOption(e.target.value)}>
+                    <option value="name">Name</option>
+                    <option value="author">Author</option>
+                    <option value="shelf">Shelf</option>
+                    <option value="id">ID</option>
+                  </select>
+                  <button onClick={handleSearch} className="searchButton">Search</button>
+                </div>
+              </div>
+              {searchResults.length > 0 ? (
+                <ul className="searchResults">
+                  {searchResults.map((book) => (
+                    <li key={book.id} className="searchResultItem">
+                      <div className="bookInfo">
+                        <h3 className="bookName">{book.bookName}</h3>
+                        <p className="author">by {book.author}</p>
+                        <p className="shelf">Shelf: {book.shelf}</p>
+                        <BookDetails bookId={book.id} onDelete={handleDelete} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="noResults">No books found</p>
+              )}
             </section>
           </main>
         </div>
       </section>
-
-      {showProfilePopup && (
-        <div className="popup">
-          <div className="popup-content">
-            <span className="close" onClick={closeProfilePopup}>
-              &times;
-            </span>
-            <p>User Profile Content</p>
-             {/* Display user profile data */}
-             {userData && (
-              <>
-                <p>User ID: {userData.userId}</p>
-                <p>Username: {userData.username}</p>
-                <p>UserEmail: {userData.userEmail}</p>
-                <p>UserType: {userData.userType}</p>
-              
-              </>
-            )}
-          </div>
-        </div>
-      )}
-       {showSearchPopup && (
-        <div className="popup">
-          <div className="popup-content">
-            <span className="close" onClick={closeSearchPopup}>
-              &times;
-            </span>
-            <p>Search Popup Content</p>
-            <ul>
-              {results.map((book) => (
-                <li key={book.id}>
-                  {book.title} by {book.author}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+      <ToastContainer />
 
       <style jsx>{`
-         
-  
           .titleAndProfile {
             display: flex;
             align-items: center;
           }
-  
+
           .title {
             margin: 5rem;
             font-size: 3rem;
             color: #f5f5f5;
           }
-  
+
           .profileIcon {
             cursor: pointer;
-            width: 15px; /* Adjust size as needed */
+            width: 15px;
             margin-left: 15rem;
           }
-  
+
           .backgroundImage {
             width: 100vw;
             height: 100vh;
@@ -197,23 +138,23 @@ const BookSearchS = () => {
             top: 0;
             left: 0;
             z-index: -1;
-            opacity: 0.8; /* Added opacity */
+            opacity: 0.8;
           }
-  
+
           .banner {
             position: relative;
           }
-  
+
           .wrapper {
             position: relative;
             z-index: 1;
           }
-  
+
           .header {
             background-color: transparent;
             padding-top: 8px;
           }
-  
+
           .navigationContainer {
             background-color: rgba(119, 51, 51, 0.99);
             display: flex;
@@ -221,7 +162,7 @@ const BookSearchS = () => {
             padding: 1rem 0;
             color: #f5f5f5;
           }
-  
+
           .menuButton {
             font-family: Inter, sans-serif;
             border-radius: 30px;
@@ -231,87 +172,113 @@ const BookSearchS = () => {
             color: #e6f624;
             cursor: pointer;
           }
-  
+
           .mainContent {
             padding: 2rem;
           }
-  
-          .searchSection h2 {
-            color: #f5f5f5;
-            margin: 0 0 1rem 0;
+
+          .searchSection {
+            margin-top: 2rem;
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
           }
-  
-          .searchForm {
-            display: flex;
+
+          .searchHeader {
+            color: #333;
             margin-bottom: 1rem;
-            justify-content: space-between;
           }
-  
-          .textInput {
-            padding: 0.5rem;
+
+          .searchContainer {
+            margin-top: 1rem;
+          }
+
+          .searchInput {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+          }
+
+          .searchInput input[type="text"],
+          .searchInput select {
             margin-right: 1rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
           }
-  
+
           .searchButton {
-            background-color: rgba(29, 2, 33, 0.58);
-                    color: #e6f624;     
-                    cursor: pointer;
-                    padding: 0.5rem 1rem;
-                    font-size: 18px;
-                    border: none;
-                    margin-top: 10px;
-          }
-          .searchButton:hover {
             background-color: #2b27ee;
             color: #fff;
-        }
-  
-          .popup {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1;
-          }
-  
-          .popup-content {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 400px;
-            width: 100%;
-            position: relative;
-            z-index: 2;
-          }
-  
-          .close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 20px;
             cursor: pointer;
-            z-index: 2;
+            padding: 0.5rem 1rem;
+            font-size: 18px;
+            border: none;
+            border-radius: 4px;
           }
-          .visually-hidden {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            margin: -1px;
-            border 0;
+
+          .searchButton:hover {
+            background-color: #1a18b6;
+          }
+
+          .errorMessage {
+            color: red;
+            margin-top: 0.5rem;
+          }
+
+          .noResults {
+            color: #555;
+          }
+
+          .searchResults {
+            list-style: none;
             padding: 0;
-            white-space: nowrap;
-            clip-path: inset(50%);
-            clip: rect(0 0 0 0);
-            overflow: hidden;
-        }
+            margin: 0;
+          }
+
+          .searchResultItem {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+          }
+
+          .bookInfo {
+            font-size: 18px;
+            color: #333;
+          }
+
+          .bookName {
+            margin-bottom: 0.5rem;
+          }
+
+          .author {
+            color: #666;
+            margin-bottom: 0.5rem;
+          }
+
+          .shelf {
+            color: #666;
+          }
+          .deleteButton {
+            background-color: #ff0000; /* Red color */
+            color: #fff; /* White text color */
+            padding: 1rem 2rem; /* Larger padding for bigger button */
+            font-size: 1.2rem; /* Larger font size */
+            border: none; /* No border */
+            border-radius: 8px; /* Rounded corners */
+            cursor: pointer; /* Show pointer cursor on hover */
+          }
+          
+          .deleteButton:hover {
+            background-color: #cc0000; /* Darker red color on hover */
+          }
+          
       `}</style>
     </>
   );
 }
 
-export default BookSearchS;
+export default SearchComponent;

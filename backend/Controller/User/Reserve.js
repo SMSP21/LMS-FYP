@@ -1,85 +1,81 @@
 // Define the ReserveController function that takes 'app' and 'db' as parameters
 const ReserveController = (app, db) => {
   // Handling POST requests to "/reservebook/:bookId" endpoint for book reservation
-  app.post("/reservebook/:bookId", async (req, res) => {
+  app.post("/reservebook", async (req, res) => {
     try {
-      // Extracting memberId, rawBookId, and parsing bookId from the request
-      const memberId = req.body.memberId; // Assuming you have a way to identify the member making the reservation
-      const rawBookId = req.params.bookId; // Get the raw bookId before parsing
-      console.log('Received rawBookId:', rawBookId); // Log rawBookId for debugging
-      const bookId = parseInt(rawBookId, 10); // Parse the bookId to a number here
-      console.log('Parsed bookId:', bookId); // Log parsed bookId for debugging
+      const { memberName, bookName, authorName } = req.body;
 
-      // Ensure bookId is not NaN
-      if (isNaN(bookId)) {
-        console.error('Invalid BookId:', bookId);
-        return res.status(400).json({ success: false, message: "Invalid BookId" });
+      // Check if bookName or authorName is provided
+      if (!bookName && !authorName) {
+        return res.status(400).json({ success: false, message: "Book name or author name is required" });
       }
 
-      // Query the database to check if the book with the specified bookId exists
-      const [existingBook] = await db.query("SELECT * FROM books WHERE id = ?", [bookId]);
+      let query, queryParams;
 
-      // Debug log for existingBook
-      console.log('Existing book:', existingBook);
+      // Determine the query based on whether bookName or authorName is provided
+      if (bookName) {
+        query = "SELECT id FROM books WHERE bookName = ?";
+        queryParams = [bookName];
+      } else {
+        query = "SELECT id FROM books WHERE authorName = ?";
+        queryParams = [authorName];
+      }
+
+      // Execute the query to find the book ID
+      const [result] = await db.query(query, queryParams);
 
       // If the book is not found, return an error response
-      if (existingBook.length === 0) {
+      if (result.length === 0) {
         return res.status(404).json({ success: false, message: "Book not found" });
       }
 
+      const bookId = result[0].id;
+
       // Check if the book is already reserved
       const [existingReservation] = await db.query("SELECT * FROM book_reservations WHERE bookId = ? AND status = 'reserved'", [bookId]);
-
-      console.log('Existing reservation:', existingReservation);
 
       // If the book is already reserved, return an error response
       if (existingReservation.length > 0) {
         return res.status(400).json({ success: false, message: "Book is already reserved" });
       }
 
-      // Check the userType of the member
-      const [userDetails] = await db.query("SELECT userType FROM user_details WHERE user_id = ?", [memberId]);
+      // Query the database to retrieve the member ID based on the provided member name
+      const [memberDetails] = await db.query("SELECT user_id FROM user_details WHERE user_name = ?", [memberName]);
 
-      // If user details are not found, return an error response
-      if (userDetails.length === 0) {
-        return res.status(404).json({ success: false, message: "User details not found" });
+      // If member details are not found, return an error response
+      if (memberDetails.length === 0) {
+        return res.status(404).json({ success: false, message: "Member details not found" });
       }
 
-      const userType = userDetails[0].userType;
+      const memberId = memberDetails[0].user_id;
 
-      // Check userType and proceed accordingly
-      if (userType === 'member') {
-        // Start a database transaction
-        const connection = await db.getConnection();
+      // Start a database transaction
+      const connection = await db.getConnection();
 
-        try {
-          // Begin the transaction
-          await connection.beginTransaction();
+      try {
+        // Begin the transaction
+        await connection.beginTransaction();
 
-          // Insert reservation details into the book_reservations table
-          await connection.query(
-            'INSERT INTO book_reservations (bookId, memberId, status) VALUES (?, ?, ?)',
-            [bookId, memberId, 'reserved']
-          );
+        // Insert reservation details into the book_reservations table
+        await connection.query(
+          'INSERT INTO book_reservations (bookId, memberId, status) VALUES (?, ?, ?)',
+          [bookId, memberId, 'reserved']
+        );
 
-          // Commit the transaction
-          await connection.commit();
+        // Commit the transaction
+        await connection.commit();
 
-          // Reservation successful
-          console.log("Book Reserved Successfully");
-          res.status(200).json({ success: true, message: "Book reserved successfully" });
-        } catch (err) {
-          // Rollback the transaction in case of an error
-          await connection.rollback();
-          console.error("Error during book reservation:", err);
-          res.status(500).json({ success: false, error: err.message || "Internal Server Error" });
-        } finally {
-          // Release the connection
-          connection.release();
-        }
-      } else {
-        // If the user does not have permission to reserve books, return an error response
-        return res.status(403).json({ success: false, message: "User does not have permission to reserve books" });
+        // Reservation successful
+        console.log("Book Reserved Successfully");
+        res.status(200).json({ success: true, message: "Book reserved successfully" });
+      } catch (err) {
+        // Rollback the transaction in case of an error
+        await connection.rollback();
+        console.error("Error during book reservation:", err);
+        res.status(500).json({ success: false, error: err.message || "Internal Server Error" });
+      } finally {
+        // Release the connection
+        connection.release();
       }
     } catch (error) {
       // Handle any errors that occur during the book reservation process

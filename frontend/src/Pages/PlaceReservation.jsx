@@ -2,10 +2,17 @@ import React, { useState } from "react";
 import { Link } from 'react-router-dom';
 import onlinelibrary from "../assets/onlineLibrary1.png";
 import profileIcon from "../assets/profileIcon.jpg"; // Import your profile icon image
+import axios from 'axios'; // Import axios for making HTTP requests
 
 function PlaceReservation() {
     const [showProfilePopup, setShowProfilePopup] = useState(false);
     const [showSearchPopup, setShowSearchPopup] = useState(false);
+    const [reservationResult, setReservationResult] = useState(null); // State to hold reservation result (success/error)
+  // Inside your PlaceReservation component
+const [memberName, setMemberName] = useState(''); // Define and initialize memberName state
+const [bookName, setBookName] = useState(''); // Define and initialize bookName state
+const [authorName, setAuthorName] = useState(''); // Define and initialize authorName state
+
     const buttons = [
         { id: "booksSearch", text: "Books Search", route: "/book-search" },
         { id: "viewDataInfo", text: "View Data Info" },
@@ -13,12 +20,37 @@ function PlaceReservation() {
         { id: "Reservation", text: "Reservation", route: "/Place-reservations" },
         { id: "logout", text: "Logout", route: "/Signout" }
     ];
+
     const closeProfilePopup = () => {
         setShowProfilePopup(false);
-      };
-      const closeSearchPopup = () => {
+    };
+
+    const closeSearchPopup = () => {
         setShowSearchPopup(false);
-      };
+    };
+
+    const handleReservation = async () => {
+      try {
+        // Send a POST request to reserve the book
+        const response = await axios.post("/reservebook", {
+          memberName: memberName,
+          bookName: bookName,
+          authorName: authorName
+        });
+        // Handle success
+        console.log(response.data);
+        setReservationResult({ success: true, message: "Book reserved successfully" });
+      } catch (error) {
+        // Handle error
+        console.error('Error reserving book:', error.response.data);
+        setReservationResult({ success: false, message: "Error reserving book: " + error.response.data.message });
+      }
+    };
+    
+
+    const closeModal = () => {
+        setReservationResult(null);
+    };
     return (
         <>
          <div className="titleAndProfile">
@@ -58,14 +90,18 @@ function PlaceReservation() {
                             <input type="text" id="authorName" className="textInput" placeholder="Author Name" aria-label="Author Name" />
                         </form>
                     </article>
-                    <form className="searchForm">
-                        <button type="button" className="searchButton" onClick={() => setShowSearchPopup(true)}>Search</button>
-                    </form>
+                    <article className="user-info">
+                        <form className="searchForm">
+                            <label htmlFor="memberName" className="visually-hidden">Member Name</label>
+                            <input type="text" id="memberName" className="textInput" placeholder="Member Name" aria-label="Member Name" />
+                        </form>
+                    </article>
+                   
                 </section>
                 {/* Add spacing between content sections */}
                 </div>
                 <section className="actions-section">
-                    <button type="submit" className="action-button">Reserve</button>
+                    <button type="submit" className="action-button"onClick={handleReservation}>Reserve</button>
                     <Link to="/Payement">
                         <button className="action-button">Pay Now</button>
                     </Link>
@@ -91,6 +127,14 @@ function PlaceReservation() {
               </div>
             </div>
           )}
+           {reservationResult && (
+                <div className="popup">
+                    <div className="popup-content">
+                        <span className="close" onClick={closeModal}>&times;</span>
+                        <p>{reservationResult.message}</p>
+                    </div>
+                </div>
+            )}
       
             <style jsx>{`
         .titleAndProfile {
@@ -210,6 +254,7 @@ function PlaceReservation() {
                 .searchForm {
                     display: flex;
                     align-items: center;
+                    padding: 20px;
                 }
 
                 .textInput {

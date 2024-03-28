@@ -5,10 +5,12 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import onlinelibrary from '../assets/onlineLibrary1.png';
 import rectangle3 from '../assets/rectangle3.jpeg';
+import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Import eye icons from react-icons library
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -17,20 +19,32 @@ const LoginPage = () => {
         username,
         password,
       });
-
+  
       const { success, message } = response.data;
-
+  
       if (success) {
         // Successful login
         console.log('Login successful');
-        navigate('/staff-dashboard'); // Navigate to StaffDashboard upon successful login
+  
+        // Determine the userType from the response data
+        const userType = response.data.userType;
+  
+        // Redirect users to their respective dashboards based on userType
+        if (userType === 'staff') {
+          navigate('/staff-dashboard');
+       
+        } else {
+          // Handle unrecognized user type
+          console.error('Unauthorized: User type not recognized');
+          toast.error('Unauthorized: User type not recognized');
+        }
       } else {
         // Login failed
         toast.error(message); // Display error message as a toast
       }
     } catch (error) {
       console.error('Error:', error);
-    
+  
       if (error.response && error.response.status === 401) {
         toast.error('Invalid credentials: Please check your username and password.');
       } else {
@@ -71,17 +85,27 @@ const LoginPage = () => {
                     <label htmlFor="passwordInput" className="visually-hidden">
                       Password
                     </label>
-                    <input
-                      type="password"
-                      id="passwordInput"
-                      className="form-control"
-                      placeholder="Password"
-                      aria-label="Password"
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
+                    <div className="password-input-container">
+                      <input
+                        type={showPassword ? "text" : "password"} // Toggle input type based on showPassword state
+                        id="passwordInput"
+                        className="form-control"
+                        placeholder="Password"
+                        aria-label="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="toggle-password-button"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />} {/* Toggle eye icon based on showPassword state */}
+                      </button>
+                    </div>
                   </div>
                   <button type="button" className="login-button" onClick={handleLogin}>
-                    S.Login
+                    Login
                   </button>
                 </form>
                 <div className="register-now">
@@ -93,10 +117,7 @@ const LoginPage = () => {
         </div>
       </div>
       <ToastContainer /> {/* ToastContainer for displaying notifications */}
-      <style jsx>{`
-        /* Your CSS styles */
-      `}</style>
-  
+    
 
 
 
@@ -180,10 +201,11 @@ const LoginPage = () => {
         }
         .form-control {
           background-color: #d9d9d9;
-          width: 100%;
+          width: calc(100% - 40px); /* Adjusted width to accommodate for the eye icon button */
           height: 47px;
           padding: 0 10px;
           border-radius: 5px;
+          margin-right: 10px; /* Add some margin to separate the password input and the eye icon */
         }
         .login-button {
           background-color: #d9d9d9;
@@ -245,6 +267,29 @@ const LoginPage = () => {
 
         .close:hover {
           color: black;
+        }
+        .password-input-container {
+          position: relative;
+          display: flex;
+          align-items: center;
+          width: 100%; /* Ensure the container takes up the full width */
+        }
+        .toggle-password-button {
+          background: none;
+          border: none;
+          cursor: pointer;
+          position: absolute;
+          right: 20px; /* Position the eye icon button to the right of the password input */
+          opacity: 0.6; /* Set initial opacity */
+          transition: opacity 0.3s ease; /* Add transition effect for opacity */
+        }
+        
+        .toggle-password-button:hover {
+          opacity: 1; /* Increase opacity on hover */
+        }
+        .absolute {
+          position: absolute;
+          right: 10px;
         }
       `}</style>
 

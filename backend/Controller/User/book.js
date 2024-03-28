@@ -1,10 +1,10 @@
 // Defining the BookController function that takes 'app' and 'db' as parameters
 const BookController = (app, db) => {
-  
+
   // Endpoint for adding a new book
   app.post("/addbook", async (req, res) => {
     try {
-      // Destructuring book details from the request body
+      // book details from the request body
       const {
         bookName,
         alternateTitle,
@@ -59,7 +59,10 @@ const BookController = (app, db) => {
       res.status(500).json({ error: "Internal Server Error" });
     }
   });
+
+  // Endpoint for getting all books
+  
 }
- 
+
 // Exporting the BookController function for external use
 module.exports = BookController;
