@@ -13,15 +13,20 @@ import PlaceReservation from './Pages/PlaceReservation';
 import Payement from './Pages/Payement';
 import BookController from './Pages/Addbooks.jsx';
 import BookSearchS from './Pages/BookSearchStaff.jsx';
-import Bookupdate from './Pages/Bookupdate.jsx';
-
+import ViewReservation from './Pages/ViewReservation';
+import { UserProvider } from './Pages/usercontext.js';
+import RegistrationStaff from './Pages/RegistrationFormStaff';
+import ViewDataInfo from './Pages/ViewDataInfo';
 const stripePromise = loadStripe('your_stripe_publishable_key');
 
 function App() {
   return (
     <div>
+      
       <BrowserRouter>
+      <UserProvider> 
         <Routes>
+          
           <Route index element={<HomePage />} />
           <Route path="/staff" element={<Login />} />
           <Route path="/member" element={<MemberLogin />} />
@@ -35,7 +40,10 @@ function App() {
           <Route path="/Place-reservations" element={<PlaceReservation />} />
           <Route path="/add-books" element={< BookController/>} /> 
           <Route path="/book-searchs" element={<BookSearchS />} />
-          <Route path="/book-update" element={<Bookupdate />} />
+          
+          <Route path="/RegistrationStaff" element={<RegistrationStaff />} />
+          <Route path="/view-reservations" element={<ViewReservation />} />
+          <Route path="/View-Data-Info" element={<ViewDataInfo />} />
           <Route
             path="/Payement"
             element={
@@ -45,6 +53,7 @@ function App() {
             }
           />
         </Routes>
+        </UserProvider> 
       </BrowserRouter>
     </div>
   );

@@ -6,12 +6,14 @@ import 'react-toastify/dist/ReactToastify.css';
 import onlinelibrary from '../assets/onlineLibrary1.png';
 import rectangle3 from '../assets/rectangle3.jpeg';
 import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Import eye icons from react-icons library
+import { useUser } from './usercontext';
 
-const LoginPage = () => {
+const MemberLogin = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
   const navigate = useNavigate();
+  const { login } = useUser();
 
   const handleLogin = async () => {
     try {
@@ -26,13 +28,21 @@ const LoginPage = () => {
         // Successful login
         console.log('Login successful');
   
-        // Determine the userType from the response data
-        const userType = response.data.userType;
-  
+       
+        
+        
         // Redirect users to their respective dashboards based on userType
-         if (userType === 'member') {
-          navigate('/Memberdashboard');
-        } else {
+        const { token, userData } = response.data;
+
+if (userData.userType === 'member') {
+  localStorage.setItem('token', token);
+  localStorage.setItem('userData', JSON.stringify(userData)); // Stringify userData before saving to localStorage
+  toast('Login successful!', { type: 'success' });  
+  login(userData.userType, username, userData);
+  navigate('/Memberdashboard');
+}
+       
+         else {
           // Handle unrecognized user type
           console.error('Unauthorized: User type not recognized');
           toast.error('Unauthorized: User type not recognized');
@@ -51,8 +61,6 @@ const LoginPage = () => {
       }
     }
   };
-  
-  
 
   return (
     <>
@@ -298,4 +306,4 @@ const LoginPage = () => {
   );
 }
 
-export default LoginPage;
+export default MemberLogin;

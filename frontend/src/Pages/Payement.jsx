@@ -11,6 +11,16 @@ const PaymentMethodOption = ({ method, iconBg, iconName }) => (
   </div>
 );
 
+// Define options for CardElement
+const CARD_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      fontSize: '16px',
+      fontFamily: '"Open Sans", sans-serif',
+    },
+  },
+};
+
 // PaymentForm Component
 const PaymentForm = () => {
   // Stripe hooks for handling payments
@@ -26,6 +36,8 @@ const PaymentForm = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [showValidationPopup, setShowValidationPopup] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const userData =JSON.parse(localStorage.getItem('userData'));
+  const username = userData.username;
 
   // Fetch clientSecret on component mount
   useEffect(() => {
@@ -141,18 +153,6 @@ const PaymentForm = () => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="amount" className="visually-hidden">Amount:</label>
-            <input
-              id="amount"
-              type="text"
-              placeholder="Amount"
-              aria-label="Amount"
-              className="input-field"
-              disabled
-              value={amount}
-            />
-          </div>
-          <div className="form-group">
             <label htmlFor="remarks" className="visually-hidden">Remarks:</label>
             <input
               id="remarks"
@@ -163,6 +163,18 @@ const PaymentForm = () => {
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
             />
+          </div>
+          <div className="card-details">
+            <label htmlFor="cardElement" className="visually-hidden">Card Details</label>
+            <div className="card-element-container">
+              <CardElement
+                id="cardElement"
+                options={CARD_ELEMENT_OPTIONS}
+                onChange={(e) => {
+                  // Handle changes in the CardElement
+                }}
+              />
+            </div>
           </div>
           <section className="payment-methods">
             <h2 className="method-title">Choose Payment Method:</h2>
@@ -182,9 +194,10 @@ const PaymentForm = () => {
             </div>
           </section>
         </section>
+      
         <footer className="actions">
           <button className="pay-now" onClick={handlePayNowClick}>Pay now</button>
-          <Link to="/Place-reservations">
+          <Link to="/View-Data-Info">
             <button className="go-back">BACK</button>
           </Link>
         </footer>
@@ -418,6 +431,34 @@ const PaymentForm = () => {
         cursor: pointer;
         border-radius: 5px;
       }
+      ..card-details {
+        margin-top: 20px;
+      }
+      
+      .card-element-container {
+        margin-top: 10px; /* Add some gap between the label and the CardElement */
+      }
+      
+      #cardElement {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        width: 100%;
+        font-size: 16px;
+        font-family: 'Open Sans', sans-serif;
+        color: #333;
+        background-color: #fff;
+        transition: border-color 0.3s ease;
+      }
+      
+      #cardElement:focus {
+        border-color: #4CAF50; /* Adjust focus border color as needed */
+      }
+      
+      .card-details label {
+        display: none; /* Hide the label visually */
+      }
+      
     `}</style>
   </>
 );

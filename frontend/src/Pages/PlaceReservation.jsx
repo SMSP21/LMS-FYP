@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import onlinelibrary from "../assets/onlineLibrary1.png";
 import profileIcon from "../assets/profileIcon.jpg"; // Import your profile icon image
 import axios from 'axios'; // Import axios for making HTTP requests
+import { useLocation } from "react-router-dom";
 
 function PlaceReservation() {
     const [showProfilePopup, setShowProfilePopup] = useState(false);
@@ -10,12 +11,17 @@ function PlaceReservation() {
     const [reservationResult, setReservationResult] = useState(null); // State to hold reservation result (success/error)
   // Inside your PlaceReservation component
 const [memberName, setMemberName] = useState(''); // Define and initialize memberName state
+const [shelf, setShelf] = useState(''); 
 const [bookName, setBookName] = useState(''); // Define and initialize bookName state
 const [authorName, setAuthorName] = useState(''); // Define and initialize authorName state
+const location = useLocation();
+const [bookDetails, setBookDetails] = useState(null);
+const userData =JSON.parse(localStorage.getItem('userData'));
+const username = userData.username;
 
     const buttons = [
         { id: "booksSearch", text: "Books Search", route: "/book-search" },
-        { id: "viewDataInfo", text: "View Data Info" },
+        { id: "viewDataInfo", text: "View Data Info", route: "/View-Data-Info" },
         { id: "returnBook", text: "Return Book" },
         { id: "Reservation", text: "Reservation", route: "/Place-reservations" },
         { id: "logout", text: "Logout", route: "/Signout" }
@@ -28,7 +34,13 @@ const [authorName, setAuthorName] = useState(''); // Define and initialize autho
     const closeSearchPopup = () => {
         setShowSearchPopup(false);
     };
-
+    
+  
+    useEffect(() => {
+      if (location.state && location.state.book) {
+        setBookDetails(location.state.book);
+      }
+    }, [location.state]);
     const handleReservation = async () => {
       try {
         // Send a POST request to reserve the book
@@ -74,28 +86,61 @@ const [authorName, setAuthorName] = useState(''); // Define and initialize autho
             <main>
             <div className="section-spacing">
                 <section className="content-section">
-                    <article className="book-info">
-                        <form className="searchForm">
-                            <label htmlFor="bookName" className="visually-hidden">Book name</label>
-                            <input type="text" id="bookName" className="textInput" placeholder="Book name" aria-label="Book name" />
-                        </form>
-                        <form className="searchForm">
-                            <label htmlFor="bookId" className="visually-hidden">Book ID</label>
-                            <input type="text" id="bookId" className="textInput" placeholder="Book ID" aria-label="Book ID" />
-                        </form>
-                    </article>
-                    <article className="user-info">
-                        <form className="searchForm">
-                            <label htmlFor="authorName" className="visually-hidden">Author Name</label>
-                            <input type="text" id="authorName" className="textInput" placeholder="Author Name" aria-label="Author Name" />
-                        </form>
-                    </article>
-                    <article className="user-info">
-                        <form className="searchForm">
-                            <label htmlFor="memberName" className="visually-hidden">Member Name</label>
-                            <input type="text" id="memberName" className="textInput" placeholder="Member Name" aria-label="Member Name" />
-                        </form>
-                    </article>
+                <article className="book-info">
+                  <form className="searchForm">
+                      <label htmlFor="bookName" className="visually-hidden">Book name</label>
+                      <input
+                          type="text"
+                          id="bookName"
+                          className="textInput"
+                          placeholder="Book name"
+                          aria-label="Book name"
+                          value={bookName} // Set the value to the state variable
+                          onChange={(e) => setBookName(e.target.value)} // Update the state variable on change
+                      />
+                  </form>
+                  <form className="searchForm">
+                      <label htmlFor="shelf" className="visually-hidden">Shelf</label>
+                      <input
+                          type="text"
+                          id="shelf"
+                          className="textInput"
+                          placeholder="Shelf"
+                          aria-label="Shelf"
+                          value={shelf} // Set the value to the state variable
+                          onChange={(e) => setShelf(e.target.value)} // Update the state variable on change
+                      />
+                  </form>
+              </article>
+              <article className="user-info">
+                  <form className="searchForm">
+                      <label htmlFor="authorName" className="visually-hidden">Author Name</label>
+                      <input
+                          type="text"
+                          id="authorName"
+                          className="textInput"
+                          placeholder="Author Name"
+                          aria-label="Author Name"
+                          value={authorName} // Set the value to the state variable
+                          onChange={(e) => setAuthorName(e.target.value)} // Update the state variable on change
+                      />
+                  </form>
+              </article>
+              <article className="user-info">
+                  <form className="searchForm">
+                      <label htmlFor="memberName" className="visually-hidden">Member Name</label>
+                      <input
+                          type="text"
+                          id="memberName"
+                          className="textInput"
+                          placeholder="Member Name"
+                          aria-label="Member Name"
+                          value={memberName} // Set the value to the state variable
+                          onChange={(e) => setMemberName(e.target.value)} // Update the state variable on change
+                      />
+                  </form>
+              </article>
+
                    
                 </section>
                 {/* Add spacing between content sections */}

@@ -6,12 +6,14 @@ import 'react-toastify/dist/ReactToastify.css';
 import onlinelibrary from '../assets/onlineLibrary1.png';
 import rectangle3 from '../assets/rectangle3.jpeg';
 import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Import eye icons from react-icons library
+import { useUser } from './usercontext';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
   const navigate = useNavigate();
+  const { login } = useUser();
 
   const handleLogin = async () => {
     try {
@@ -26,14 +28,21 @@ const LoginPage = () => {
         // Successful login
         console.log('Login successful');
   
-        // Determine the userType from the response data
-        const userType = response.data.userType;
-  
-        // Redirect users to their respective dashboards based on userType
-        if (userType === 'staff') {
-          navigate('/staff-dashboard');
        
-        } else {
+        
+        
+        // Redirect users to their respective dashboards based on userType
+        const { token, userData } = response.data;
+
+if (userData.userType === 'staff') {
+  localStorage.setItem('token', token);
+  localStorage.setItem('userData', JSON.stringify(userData)); // Stringify userData before saving to localStorage
+  toast('Login successful!', { type: 'success' });  
+  login(userData.userType, username, userData);
+  navigate('/staff-dashboard');
+}
+       
+         else {
           // Handle unrecognized user type
           console.error('Unauthorized: User type not recognized');
           toast.error('Unauthorized: User type not recognized');
@@ -108,9 +117,7 @@ const LoginPage = () => {
                     Login
                   </button>
                 </form>
-                <div className="register-now">
-                  Don't have an account? <Link to="/Registration">Register Now</Link>
-                </div>
+                
               </div>
             </section>
           </div>
@@ -184,6 +191,11 @@ const LoginPage = () => {
         .login-left, .login-right {
           flex: 1;
         }
+        .login-right {
+          flex: 1;
+          margin-left: 20px; /* Add margin to create a gap between login-left and login-right */
+        }
+        
         .login-image {
           width: 100%;
           height: 100%;
@@ -193,29 +205,32 @@ const LoginPage = () => {
         .login-form {
           display: flex;
           flex-direction: column;
-          gap: 0px;
+          gap: 20px; /* Add vertical gap between form elements */
         }
+        
         .form-group {
           display: flex;
           flex-direction: column;
         }
+        
         .form-control {
-          background-color: #d9d9d9;
-          width: calc(100% - 40px); /* Adjusted width to accommodate for the eye icon button */
+          width: calc(100% - 20px); /* Make the text fields take up the full width minus padding */
           height: 47px;
-          padding: 0 10px;
+          padding: 0 10px; /* Add padding to maintain equal gaps */
           border-radius: 5px;
-          margin-right: 10px; /* Add some margin to separate the password input and the eye icon */
         }
+        
+        
         .login-button {
-          background-color: #d9d9d9;
-          padding: 10px 20px;
+          width: 30%; /* Make the button take up the full width */
+          padding: 10px 0; /* Adjust padding to keep the height consistent */
           font-family: 'Inter', sans-serif;
           font-style: italic;
-          align-self: center;
           cursor: pointer;
           border-radius: 5px;
+          align-self: center;
         }
+        
         .visually-hidden {
           border: 0;
           clip: rect(0 0 0 0);

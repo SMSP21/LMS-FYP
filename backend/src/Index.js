@@ -6,9 +6,10 @@ const cors = require('cors');
 const ReserveController = require('../Controller/User/Reserve');
 const UserLoginController = require('../Controller/User/UserLoginController');
 const BookUpdate = require('../Controller/User/updatebook');
-const BookDelete = require('../Controller/User/deletebook');
+const bookSearch = require('../Controller/User/bookSearch');
 
 
+const UserProfile = require('../Controller/User/userProfile')
 const app = express();
 const port = 5002;
 
@@ -33,84 +34,96 @@ const db = mysql.createPool({
 UserRegisterController(app, db);
 BookController(app, db);
 ReserveController(app, db);
-BookUpdate(app, db);
-BookDelete(app, db);
+BookUpdate(app, db); 
+bookSearch(app, db);
+
+
 app.use('/',UserLoginController (db)); 
+
+
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// Define routes
+router.get('/stripe_config', async (req, res) => {
+  try {
+    const stripeConfig = {
+      publicKey: sk_test_51P25nf2KndXIGYltKqFQJdT66Cp97SPUjtHfqms3qCImzGG8UfBZAjReM9STRTNK2F8p0YUwiec5hQRk8gDoqluw007g5p3zLy
+    };
+    res.json(stripeConfig);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/create_checkout_session/:pk', async (req, res) => {
+  try {
+    const package = await knex('packages').where('id', req.params.pk).first();
+    if (!package) {
+      return res.status(404).json({ error: 'Package not found' });
+    }
+
+    const domainUrl = 'http://localhost:3000/'; // Update with your domain
+    const session = await stripe.checkout.sessions.create({
+      success_url: `${domainUrl}success?session_id={CHECKOUT_SESSION_ID}&product_id=${req.params.pk}`,
+      cancel_url: `${domainUrl}cancelled/`,
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'NPR',
+            product_data: {
+              name: package.package_title
+            },
+            unit_amount: Math.round(package.package_price * 100)
+          },
+          quantity: 1
+        }
+      ]
+    });
+
+    res.json({ sessionId: session.id });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// Route to process payment for book reservation
+app.post('/payment', async (req, res) => {
+  try {
+    const { amount, currency, token, bookId, memberId } = req.body;
+
+    // Create a payment intent with Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: currency,
+      payment_method: ['card'],
+      confirm: true,
+    });
+
+    // Handle the successful payment
+    if (paymentIntent.status === 'succeeded') {
+      // Update the reservation status in the database
+      // You may want to use your existing logic here to update the reservation status
+
+      // Return a success response
+      res.status(200).json({ success: true, message: 'Payment successful' });
+    } else {
+      // Return an error response if payment fails
+      res.status(400).json({ success: false, message: 'Payment failed' });
+    }
+  } catch (error) {
+    console.error('Error processing payment:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+});
+
 
 // Check Database Connection
 // Connect to the database
 
-app.post('/search', async (req, res) => {
-  const { searchTerm } = req.body;
-  if (!searchTerm) {
-      return res.status(400).json({
-          error: 'Search term is required'
-      });
-  }
-
-  const query = `
-      SELECT * FROM books
-      WHERE bookName LIKE ? 
-      OR author LIKE ?
-      OR shelf LIKE ?
-  `;
-
-  const searchValue = `%${searchTerm}%`;
-
-  try {
-      const [results] = await db.query(query, [searchValue, searchValue, searchValue]);
-
-      if (results.length === 0) {
-          return res.status(404).json({
-              error: 'Books not found'
-          });
-      }
-      res.json(results);
-  } catch (error) {
-      console.error('Error executing search query:', error);
-      return res.status(500).json({
-          error: 'Internal server error'
-      });
-  }
-});
-
-
-app.get("/books", async (req, res) => {
-  try {
-    // Fetching all books from the database
-    const [books] = await db.query("SELECT * FROM books");
-
-    // Sending the list of books as a response
-    res.status(200).json({ books });
-  } catch (error) {
-    // Handling any errors that occur during the retrieval process
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-app.delete("/books/:id", async (req, res) => {
-  const bookId = req.params.id;
-
-  try {
-    // Check if the book exists
-    const [existingBooks] = await db.query("SELECT * FROM books WHERE id = ?", [bookId]);
-    
-    if (existingBooks.length === 0) {
-      return res.status(404).json({ error: "Book not found" });
-    }
-
-    // Delete the book from the database
-    await db.query("DELETE FROM books WHERE id = ?", [bookId]);
-
-    res.status(200).json({ message: "Book deleted successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-// Start the server and listen on the specified port
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+

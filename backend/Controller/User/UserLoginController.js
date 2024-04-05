@@ -1,4 +1,5 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 
 const UserLoginController = (db) => {
   const router = express.Router();
@@ -30,19 +31,29 @@ const UserLoginController = (db) => {
 
       const userType = results[0].userType;
       console.log(userType);
-
-      if (userType === 'staff') {
-        res.status(200).json({ success: true, userType: 'staff' });
-      } else if (userType === 'member') {
-        res.status(200).json({ success: true, userType: 'member' });
-      } else {
-        res.status(403).json({ success: false, message: 'Unauthorized: User type not recognized' });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ success: false, message: 'Internal Server Error' });
-    }
-  });
+                // If the credentials are valid, generate a JWT token
+                const secretKey = '9d9d667f8473686b29d597dd83c49195e886231d61b51bed0067db2780b2ef78';
+                if (!secretKey) {
+                  console.error('JWT secret key not found');
+                  return res.status(500).json({ success: false, message: 'Internal Server Error' });
+                }
+      
+                const token = jwt.sign({ username, enteredPassword, userType }, secretKey, {
+                  expiresIn: '1w', // Token expiration time (adjust as needed)
+                });
+      
+              
+           
+                 // Send the token as part of the response along with additional user data
+               res.status(200).json({ success: true, message: 'Login successful', token, userData: { username, userType } });
+               console.log(token)
+               console.log(userType, username)
+              } catch (error) {
+                console.error('Error:', error);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+              }
+            });
+            
 
   return router;
 };

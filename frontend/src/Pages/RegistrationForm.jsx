@@ -147,16 +147,16 @@ function RegistrationForm() {
                     User Type
                   </label>
                   <select
-                    id="userType"
-                    className="form-input"
-                    aria-label="User Type"
-                    value={formData.userType}
-                    onChange={handleChange}
-                  >
-                    
-                    <option value="member">Member</option>
-                    <option value="staff">Staff</option>
-                  </select>
+                  id="userType"
+                  className="form-input"
+                  aria-label="User Type"
+                  value={formData.userType}
+                  onChange={handleChange}
+                  disabled // Disable the select element to prevent user interaction
+                >
+                  <option value="member">Member</option>
+                </select>
+
                 </div>
                   <button type="submit" className="form-submit">Register</button>
                 </form>

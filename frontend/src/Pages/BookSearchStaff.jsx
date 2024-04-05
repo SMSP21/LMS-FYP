@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from 'axios';
 import { Link } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
@@ -25,20 +25,190 @@ function BookDetails({ bookId, onDelete }) {
   );
 }
 
-const SearchComponent = () => {
+// BookUpdate Component
+// BookUpdate Component
+function BookUpdate({ bookId, onUpdate, initialBook }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [updatedBook, setUpdatedBook] = useState(initialBook || { 
+    bookName: '',
+    alternateTitle: '',
+    author: '',
+    CostPerBook: '',
+    publisher: '',
+    bookCountAvailable: '',
+    bookStatus: '',
+    shelf: ''
+  });
+  const [showBookDetails, setShowBookDetails] = useState(!isEditing); // Initially hide book details when not editing
+
+  const handleToggleEdit = () => {
+    setIsEditing(!isEditing);
+    setShowBookDetails(false); // Hide book details when entering edit mode
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false); // Turn off editing mode
+    setShowBookDetails(true); // Show book details when canceling edit mode
+  };
+
+  const handleUpdateField = (field, value) => {
+    setUpdatedBook({
+      ...updatedBook,
+      [field]: value
+    });
+  };
+
+  const handleUpdateBook = async () => {
+    try {
+      await axios.put(`http://localhost:5002/books/${bookId}`, updatedBook);
+      toast.success('Book updated successfully!');
+      onUpdate(bookId, updatedBook); // Notify the parent component about the update
+      setIsEditing(false); // Exit edit mode
+      setShowBookDetails(true); // Show book details after updating
+    } catch (error) {
+      toast.error('Error updating book');
+    }
+  };
+
+  return (
+    <td>
+      {isEditing ? (
+        // Edit mode UI
+        <div className="editFieldsContainer">
+          <div className="editField">
+            <label htmlFor="bookName">Book Name:</label>
+            <input
+              id="bookName"
+              type="text"
+              value={updatedBook.bookName}
+              onChange={(e) => handleUpdateField('bookName', e.target.value)}
+            />
+          </div>
+          {/* Add more input fields for other book properties */}
+          {/* Alternative Title */}
+          <div className="editField">
+            <label htmlFor="alternateTitle">Alternate Title:</label>
+            <input
+              id="alternateTitle"
+              type="text"
+              value={updatedBook.alternateTitle}
+              onChange={(e) => handleUpdateField('alternateTitle', e.target.value)}
+            />
+          </div>
+          {/* Author */}
+          <div className="editField">
+            <label htmlFor="author">Author:</label>
+            <input
+              id="author"
+              type="text"
+              value={updatedBook.author}
+              onChange={(e) => handleUpdateField('author', e.target.value)}
+            />
+          </div>
+          {/* Cost Per Book */}
+          <div className="editField">
+            <label htmlFor="CostPerBook">Cost Per Book:</label>
+            <input
+              id="CostPerBook"
+              type="text"
+              value={updatedBook.CostPerBook}
+              onChange={(e) => handleUpdateField('CostPerBook', e.target.value)}
+            />
+          </div>
+          {/* Publisher */}
+          <div className="editField">
+            <label htmlFor="publisher">Publisher:</label>
+            <input
+              id="publisher"
+              type="text"
+              value={updatedBook.publisher}
+              onChange={(e) => handleUpdateField('publisher', e.target.value)}
+            />
+          </div>
+          {/* Book Count Available */}
+          <div className="editField">
+            <label htmlFor="bookCountAvailable">Book Count Available:</label>
+            <input
+              id="bookCountAvailable"
+              type="text"
+              value={updatedBook.bookCountAvailable}
+              onChange={(e) => handleUpdateField('bookCountAvailable', e.target.value)}
+            />
+          </div>
+          {/* Book Status */}
+          <div className="editField">
+            <label htmlFor="bookStatus">Book Status:</label>
+            <select
+              id="bookStatus"
+              value={updatedBook.bookStatus}
+              onChange={(e) => handleUpdateField('bookStatus', e.target.value)}
+            >
+              <option value="Available">Available</option>
+              <option value="Unavailable">Unavailable</option>
+            </select>
+          </div>
+          {/* Shelf */}
+          <div className="editField">
+            <label htmlFor="shelf">Shelf:</label>
+            <input
+              id="shelf"
+              type="text"
+              value={updatedBook.shelf}
+              onChange={(e) => handleUpdateField('shelf', e.target.value)}
+            />
+          </div>
+          {/* Save and Cancel Buttons */}
+          <div className="buttonGroup">
+            <button className="saveButton" onClick={handleUpdateBook}>Save</button>
+            <button className="cancelButton" onClick={handleCancelEdit}>Cancel</button>
+          </div>
+        </div>
+      ) : (
+        // View mode UI
+        <div className="editButtonContainer">
+          {/* Edit Button */}
+          <button className={`editButton ${!initialBook ? "firstEdit" : ""}`} onClick={handleToggleEdit}>
+            {isEditing ? "Cancel" : "Edit"}
+          </button>
+          {/* Show Book Details */}
+        
+        </div>
+      )}
+    </td>
+  );
+}
+
+
+
+
+
+function BookSearchS() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchOption, setSearchOption] = useState('name');
+  const [showBookDetails, setShowBookDetails] = useState(true); // State variable to manage visibility
+  const userData =JSON.parse(localStorage.getItem('userData'));
+  const username = userData.username;
+
+  useEffect(() => {
+    fetchAllBooks();
+  }, []);
+
+  const fetchAllBooks = async () => {
+    try {
+      const response = await axios.get('http://localhost:5002/books');
+      setSearchResults(response.data.books);
+    } catch (error) {
+      console.error('Error fetching books:', error);
+    }
+  };
 
   const handleSearch = async () => {
     try {
-      let url;
-      if (searchOption === 'id') {
-        url = `http://localhost:5002/books/${searchTerm}`;
-      } else {
-        url = 'http://localhost:5002/search';
-      }
-      const response = await axios.post(url, { searchTerm, searchOption });
+      const response = await axios.post('http://localhost:5002/search', {
+        searchTerm,
+        searchOption
+      });
       setSearchResults(response.data);
       if (response.data.length === 0) {
         toast.info('No books found');
@@ -49,12 +219,37 @@ const SearchComponent = () => {
     }
   };
 
-  const handleDelete = (deletedBookId) => {
-    setSearchResults(searchResults.filter(book => book.id !== deletedBookId));
+  const handleDelete = async (deletedBookId) => {
+    try {
+      await axios.delete(`http://localhost:5002/books/${deletedBookId}`);
+      toast.success('Book deleted successfully!');
+      setSearchResults(searchResults.filter(book => book.id !== deletedBookId));
+    } catch (error) {
+      toast.error('Error deleting book');
+    }
   };
+
+  const handleUpdate = (updatedBookId) => {
+    fetchAllBooks(); // Refresh the list of books after update
+  };
+
+  const handleEdit = (bookId) => {
+    // Find the book with the given bookId and toggle its edit mode
+    setSearchResults(prevState =>
+      prevState.map(book =>
+        book.id === bookId ? { ...book, isEditing: !book.isEditing } : book
+      )
+    );
+  };
+  // Function to handle hiding book details
+const handleHideDetails = () => {
+  setShowBookDetails(false);
+};
+
 
   return (
     <>
+      {/* Title and Profile section */}
       <div className="titleAndProfile">
         <h1 className="title">Library Management System</h1>
         <div className="profileIcon">
@@ -62,14 +257,17 @@ const SearchComponent = () => {
         </div>
       </div>
 
+      {/* Background Image */}
       <img src={onlinelibrary} alt="" className="backgroundImage" />
+      
+      {/* Main Content Section */}
       <section className="banner">
         <div className="wrapper">
           <header className="header">
             <nav className="navigationContainer">
               <Link to="/add-books"><button className="menuButton">Add Books</button></Link>
-              <Link to="/book-search"><button className="menuButton">Book Search</button></Link>
-              <Link to="/book-update"><button className="menuButton">Book Update</button></Link>
+              <Link to="/book-searchs"><button className="menuButton">Book Search</button></Link>
+              <Link to="/RegistrationStaff"><button className="menuButton">Register User</button></Link>
               <Link to="/view-reservations"><button className="menuButton">View Reservation</button></Link>
               <Link to="/Signout"><button className="menuButton">Logout</button></Link>
             </nav>
@@ -84,27 +282,43 @@ const SearchComponent = () => {
                     <option value="name">Name</option>
                     <option value="author">Author</option>
                     <option value="shelf">Shelf</option>
-                    <option value="id">ID</option>
                   </select>
                   <button onClick={handleSearch} className="searchButton">Search</button>
                 </div>
               </div>
-              {searchResults.length > 0 ? (
-                <ul className="searchResults">
-                  {searchResults.map((book) => (
-                    <li key={book.id} className="searchResultItem">
-                      <div className="bookInfo">
-                        <h3 className="bookName">{book.bookName}</h3>
-                        <p className="author">by {book.author}</p>
-                        <p className="shelf">Shelf: {book.shelf}</p>
-                        <BookDetails bookId={book.id} onDelete={handleDelete} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="noResults">No books found</p>
-              )}
+              <div>
+                <h2>All Books</h2>
+                <table className="bookTable">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Author</th>
+                      <th>Shelf</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {searchResults.map((book) => (
+                      <tr key={book.id}>
+                        <td>{book.bookName}</td>
+                        <td>{book.author}</td>
+                        <td>{book.shelf}</td>
+                        <td>
+                          {/* Conditionally render BookUpdate */}
+                          {book.isEditing ? (
+                           <BookUpdate bookId={book.id} initialBook={book} onUpdate={handleUpdate} showBookDetails={showBookDetails} />
+
+                          ) : (
+                            <button className="editButton" onClick={() => handleEdit(book.id)}>Edit</button>
+
+                          )}
+                          <BookDetails bookId={book.id} onDelete={() => handleDelete(book.id)} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </section>
           </main>
         </div>
@@ -275,10 +489,120 @@ const SearchComponent = () => {
           .deleteButton:hover {
             background-color: #cc0000; /* Darker red color on hover */
           }
+
+          .bookTable {
+            width: 100%;
+            border-collapse: collapse;
+          }
+
+          .bookTable th, .bookTable td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+          }
+
+          .bookTable th {
+            background-color: #f2f2f2;
+            color: #333;
+          }
+
+          .bookTable tr:nth-child(even) {
+            background-color: #f9f9f9;
+          }
+          
+          .bookTable tr:hover {
+            background-color: #f2f2f2;
+          }
+          .saveButton,
+          .editButton {
+            background-color: #28a745; /* Green color for save/edit button */
+            color: #fff; /* White text color */
+            padding: 0.5rem 1rem; /* Larger padding for bigger button */
+            font-size: 1.2rem; /* Larger font size */
+            border: none; /* No border */
+            border-radius: 8px; /* Rounded corners */
+            cursor: pointer; /* Show pointer cursor on hover */
+          }
+          
+          .saveButton:hover,
+          .editButton:hover {
+            background-color: #218838; /* Darker green color on hover */
+          }
+          
+          .cancelButton {
+            background-color: #dc3545; /* Red color for cancel button */
+            color: #fff; /* White text color */
+            padding: 0.5rem 1rem; /* Larger padding for bigger button */
+            font-size: 1.2rem; /* Larger font size */
+            border: none; /* No border */
+            border-radius: 8px; /* Rounded corners */
+            cursor: pointer; /* Show pointer cursor on hover */
+          }
+          
+          .cancelButton:hover {
+            background-color: #c82333; /* Darker red color on hover */
+          }
+          .editButton {
+            background-color: green;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          }
+          
+          .editButton:hover {
+            background-color: darkgreen;
+          }
+          
+          .cancelButton {
+            background-color: red;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          }
+          
+          .cancelButton:hover {
+            background-color: darkred;
+          }
+          .editFieldsContainer {
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .editField {
+            margin-bottom: 1rem;
+          }
+          
+          .editField label {
+            font-weight: bold;
+          }
+          
+          .buttonGroup {
+            margin-top: 1rem;
+          }
+          
+          .saveButton,
+          .cancelButton {
+            margin-right: 1rem;
+          }
+          
+          .editButtonContainer {
+            display: flex;
+            align-items: center;
+          }
+          
+          .bookDetails {
+            margin-top: 1rem;
+          }
+          
+          
           
       `}</style>
     </>
   );
 }
 
-export default SearchComponent;
+export default BookSearchS;

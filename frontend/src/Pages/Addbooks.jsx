@@ -19,9 +19,11 @@ const BookController = ({ db }) => {
   const [bookData, setBookData] = useState(initialBookData);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [showSearchPopup, setShowSearchPopup] = useState(false);
-  const [userData, setUserData] = useState(null);
+  
   const [validationErrors, setValidationErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
+  const userData =JSON.parse(localStorage.getItem('userData'));
+  const username = userData.username;
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -56,7 +58,7 @@ const BookController = ({ db }) => {
   const handleProfileClick = async () => {
     try {
       const response = await axios.get('http://localhost:5002/profile');
-      setUserData(response.data);
+     
       setShowProfilePopup(true);
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -91,8 +93,8 @@ const BookController = ({ db }) => {
               <Link to="/book-searchs">
                 <button className="menuButton">Books Search</button>
               </Link>
-              <Link to="/book-update">
-                <button className="menuButton">Book Update</button>
+              <Link to="/RegistrationStaff">
+                <button className="menuButton">Register User</button>
               </Link>
               <Link to="/view-reservation">
                 <button className="menuButton">View Reservation</button>

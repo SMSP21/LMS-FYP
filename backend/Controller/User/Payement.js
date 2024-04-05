@@ -1,66 +1,81 @@
-// Importing required modules
-const express = require('express');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// Khalti API base URL
+const khaltiBaseUrl = "https://a.khalti.com/api/v2/";
 
-// Initializing Express app
-const app = express();
-const port = 5002;
+// Khalti secret key
 
-// Middleware to parse JSON in the request body
-app.use(express.json());
+const khaltiSecretKey = "test_secret_key_1ac288dae60d4fbdbe57ddc9aca1ac34";
 
-// Endpoint for getting Stripe configuration
-app.get('/stripe-config', (req, res) => {
-  // Providing the Stripe public key to the client
-  const stripeConfig = { publicKey: process.env.STRIPE_PUBLISHABLE_KEY };
-  res.json(stripeConfig);
-});
-
-// Endpoint for creating a checkout session
-app.get('/create-checkout-session/:pk', async (req, res) => {
-  // Extracting packageId from the request parameters
-  const packageId = req.params.pk;
-
-  // Importing the Package model (assuming it's a module) to fetch package details
-  const package = require('./models/Package'); /* Fetch the package from the database using packageId */
-
-  // Setting the domain URL for success and cancel URLs
-  const domainUrl = 'http://localhost:3000'; // Replace with your React app's URL
-
-  // Setting up the Stripe API key
-  stripe.api_key = process.env.STRIPE_SECRET_KEY;
+// Route for initiating the payment request
+app.post("/payement/", async (req, res) => {
+  const {
+    return_url,
+    website_url,
+    amount,
+    purchase_order_id,
+    purchase_order_name,
+    customer_info,
+    amount_breakdown,
+    product_details,
+  } = req.body;
 
   try {
-    // Creating a checkout session using the Stripe API
-    const checkoutSession = await stripe.checkout.sessions.create({
-      success_url: `${domainUrl}/success?session_id={CHECKOUT_SESSION_ID}&product_id=${packageId}`,
-      cancel_url: `${domainUrl}/cancelled/`,
-      payment_method_types: ['card'],
-      mode: 'payment',
-      line_items: [
-        {
-          // Adding the product details to the checkout session
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: package.package_title,
-            },
-            unit_amount: package.package_price * 100, // Converting to cents as Stripe uses the smallest currency unit
-          },
-          quantity: 1,
-        },
-      ],
+    // Make a request to Khalti API to initiate the payment
+    const response = await fetch(`${khaltiBaseUrl}/epayment/initiate/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Key ${khaltiSecretKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        return_url,
+        website_url,
+        amount,
+        purchase_order_id,
+        purchase_order_name,
+        customer_info,
+        amount_breakdown,
+        product_details,
+      }),
     });
+    console.log(response);
+    const data = await response.json();
 
-    // Sending the checkout session ID back to the client
-    res.json({ sessionId: checkoutSession.id });
+    // Return the response from Khalti API to the frontend
+    res.status(200).json(data);
   } catch (error) {
-    // Handling errors and sending an error response
-    res.json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// Starting the server on the specified port
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+// POST /api/khalti/callback
+app.post("/api/khalti/callback", async (req, res) => {
+  try {
+    const paymentData = req.body;
+
+    // Find the order by payment ID
+    const order = await Order.findOne({ "paymentResult.id": paymentData.idx });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Update the order payment result
+    order.paymentResult = {
+      id: paymentData.idx,
+      status: paymentData.state,
+      update_time: paymentData.updated_at,
+      email_address: paymentData.email,
+    };
+
+    // Save the updated order
+    await order.save();
+
+    res
+      .status(200)
+      .json({ message: "Payment callback processed successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });

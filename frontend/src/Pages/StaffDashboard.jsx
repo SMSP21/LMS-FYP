@@ -1,21 +1,31 @@
 import React from 'react';
 import { Link } from "react-router-dom";
 import onlinelibrary from "../assets/onlineLibrary1.png";
+import { useUser } from './usercontext';
 
 function StaffDashboard() {
+  const { state } = useUser();
+  const { stfUserName, stfUserType} = state;
+  const userData =JSON.parse(localStorage.getItem('userData'));
+  const username = userData.username;
+  
   const panelItems = [
     { key: 1, label: "Add Books", altText: "Add books to library", route: "/add-books" },
     { key: 2, label: "Book Search", altText: "Search for books", route: "/book-searchs" },
-    { key: 3, label: "Book Update", altText: "Update books information", route: "/book-update" },
+    { key: 3, label: "Register User", altText: "Update books information", route: "/RegistrationStaff" },
     { key: 4, label: "View Reservations", altText: "View current reservations", route: "/view-reservations" },
-    
+    { key: 5, label: "View Profile", altText: "View current profile", route: "/view-profile" },
+
   ];
 
+console.log(username);
   return (
     <>
       <header className="main-container">
         <div className="background-overlay">
           <div className="title-container">
+          <p>User Name: {username}</p>
+              <p>User Type: {stfUserType}</p>
             <h1 className="main-title">Library Management System</h1>
           </div>
         </div>
