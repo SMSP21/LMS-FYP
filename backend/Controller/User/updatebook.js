@@ -13,7 +13,7 @@ app.put("/updatebook/:bookId", async (req, res) => {
       bookName,
       alternateTitle,
       author,
-      CostPerBook,
+     
       publisher,
       bookCountAvailable,
       bookStatus,
@@ -44,13 +44,13 @@ app.put("/updatebook/:bookId", async (req, res) => {
           bookName = ?,
           alternateTitle = ?,
           author = ?,
-          CostPerBook = ?,
+          
           publisher = ?,
           bookCountAvailable = ?,
           bookStatus = ?,
           shelf = ?
         WHERE id = ?
-      `, [bookName, alternateTitle, author, CostPerBook, publisher, bookCountAvailable, bookStatus, shelf, bookId]);
+      `, [bookName, alternateTitle, author,  publisher, bookCountAvailable, bookStatus, shelf, bookId]);
 
       // Rolling back the transaction if the book update fails
       if (result.affectedRows !== 1) {

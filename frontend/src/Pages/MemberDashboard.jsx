@@ -7,8 +7,8 @@ function MemberDashboard() {
     { key: 1, label: "Book Search", altText: "Add books to library", route: "/book-search" },
     { key: 2, label: "View Data Info", altText: "Search for books", route: "/View-Data-Info" },
     { key: 3, label: "Return Book", altText: "Update books information", route: "/Return-book" },
-    { key: 4, label: "Place reservation", altText: "View current reservations", route: "/Place-reservations" },
-    { key: 5, label: "Signout", altText: "Sign out of the library system", route: "/Signout" }
+    
+    
   ]; const userData =JSON.parse(localStorage.getItem('userData'));
   const username = userData.username;
   

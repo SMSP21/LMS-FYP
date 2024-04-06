@@ -9,7 +9,7 @@ const BookController = (app, db) => {
         bookName,
         alternateTitle,
         author,
-        CostPerBook,
+        
         publisher,
         bookCountAvailable,
         bookStatus,
@@ -28,9 +28,9 @@ const BookController = (app, db) => {
         // Inserting book details into the 'books' table
         const [result] = await connection.query(`
           INSERT INTO books 
-            (bookName, alternateTitle, author, CostPerBook, publisher, bookCountAvailable, bookStatus, shelf) 
-          VALUES (?, ?, ?, ?, ?, ?, ?,?)
-        `, [bookName, alternateTitle, author, CostPerBook, publisher, bookCountAvailable, bookStatus, shelf]);
+            (bookName, alternateTitle, author,  publisher, bookCountAvailable, bookStatus, shelf) 
+          VALUES (?, ?, ?,  ?, ?, ?,?)
+        `, [bookName, alternateTitle, author,  publisher, bookCountAvailable, bookStatus, shelf]);
 
         // Rolling back the transaction if the book insertion fails
         if (result.affectedRows !== 1) {

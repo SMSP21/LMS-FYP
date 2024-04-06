@@ -9,6 +9,7 @@ import onlinelibrary from "../assets/onlineLibrary1.png";
 const ViewDataInfo = () => {
   const [reservedBooks, setReservedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalPrice, setTotalPrice] = useState(0); // State to store the total price
   const userData = JSON.parse(localStorage.getItem('userData'));
   const username = userData.username;
 
@@ -16,9 +17,13 @@ const ViewDataInfo = () => {
     fetchReservedBooks();
   }, []);
 
+  useEffect(() => {
+    calculateTotalPrice();
+  }, []);
+  
+
   const fetchReservedBooks = async () => {
     try {
-      console.log(username);
       const response = await axios.get('http://localhost:5002/reservebookget1', {
         params: {
           memberName: username
@@ -32,10 +37,17 @@ const ViewDataInfo = () => {
     }
   };
 
-  const handlePayNow = (bookId) => {
-    // Implement payment logic here
-    console.log("Pay Now clicked for book ID:", bookId);
-    // You can navigate to a payment page or perform other actions as needed
+  const handlePayNow = async (bookId) => {
+    try {
+      // Implement payment logic here
+      console.log("Pay Now clicked for book ID:", bookId);
+      await axios.post(`http://localhost:5002/markAsPaid/${bookId}`);
+      toast.success('Book marked as paid');
+      fetchReservedBooks(); // Refresh the list of reserved books after marking as paid
+    } catch (error) {
+      toast.error('Error marking book as paid');
+      console.error('Error marking book as paid:', error);
+    }
   };
 
   const handleCancelReservation = async (id) => {
@@ -48,6 +60,34 @@ const ViewDataInfo = () => {
       console.error('Error canceling reservation:', error);
     }
   };
+
+  const calculateTotalPrice = async () => {
+    try {
+
+       const response = await axios.get('http://localhost:5002/calculateTotalPrice', {
+       params: {
+        username: username // Replace 'YourMemberName' with actual member name
+       }
+      });
+      setTotalPrice(response.data.totalPrice);
+    } catch (error) {
+      toast.error('Error calculating total price');
+      console.error('Error calculating total price:', error);
+    }
+  };
+  
+
+  const handlePayNowTotal = async (totalPrice) => {
+    try {
+      // Call the backend API to process payment for the total price
+      await axios.post('http://localhost:5002/payNowTotal', { totalPrice });
+      toast.success('Total price paid successfully');
+    } catch (error) {
+      toast.error('Error processing payment');
+      console.error('Error processing payment:', error);
+    }
+  };
+
 
   return (
     <>
@@ -65,7 +105,7 @@ const ViewDataInfo = () => {
               <Link to="/book-search"><button className="menuButton">Book Search</button></Link>
               <Link to="/View-Data-Info"><button className="menuButton">View Data Info</button></Link>
               <Link to="/Return-book"><button className="menuButton">Return Book</button></Link>
-              <Link to="/Place-reservations"><button className="menuButton">Place Reservation</button></Link>
+              
               <Link to="/Signout"><button className="menuButton">Logout</button></Link>
             </nav>
           </header>
@@ -93,11 +133,11 @@ const ViewDataInfo = () => {
                           <td>{book.bookName}</td>
                           <td>{book.author}</td>
                           <td>{book.shelf}</td>
-                          <td>{book.CostPerBook}</td>
+                          <td>100</td>
                           <td>
-                            <Link to="/Payement">
-                            <button className="payNowButton" onClick={() => handlePayNow(book.id)}>Pay Now</button>
-                            </Link>
+                            {!book.isPaid && (
+                              <button className="payNowButton" onClick={() => handlePayNow(book.id)}>Pay Now</button>
+                            )}
                             <button className="cancelButton" onClick={() => handleCancelReservation(book.brid)}>Cancel</button>
                           </td>
                         </tr>
@@ -108,6 +148,17 @@ const ViewDataInfo = () => {
                       </tr>
                     )}
                   </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan="2"></td>
+                      <td>Total Price:</td>
+                      <td>{totalPrice}</td>
+                      <td>
+                        <button className="payNowButton" onClick={() => handlePayNowTotal()}>Pay Now</button>
+                      </td>
+                    </tr>
+                  </tfoot>
+
                 </table>
               </div>
             </section>
@@ -316,7 +367,10 @@ const ViewDataInfo = () => {
             color: #333;
           }
         
-          .reservedBooksTable tbody tr:nth-child(even) {
+          .reservedBooksTable tbody  {
+            background-color: #f9f9f9;
+          }
+          .reservedBooksTable tfoot {
             background-color: #f9f9f9;
           }
         
@@ -341,6 +395,21 @@ const ViewDataInfo = () => {
           .payNowButton:hover {
             background-color: #1a18b6;
           }
+          .cancelButton {
+            background-color: red; /* Red color */
+            color: #fff; /* Text color */
+            border: none;
+            padding: 10px 20px; /* Increased padding */
+            cursor: pointer;
+            border-radius: 8px;
+            margin-right: 10px; /* Added margin-right */
+            font-size: 16px; /* Adjusted font size */
+          }
+          
+          .cancelButton:hover {
+            background-color: darkred;
+          }
+          
       `}</style>
     </>
   );

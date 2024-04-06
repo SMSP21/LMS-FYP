@@ -11,7 +11,7 @@ const ReserveController = (app, db) => {
       if (!memberName || !(bookName || authorName)) {
         return res.status(400).json({ success: false, message: "Member name and either book name or author name are required" });
       }
-      console.log("Hello")
+  
       // Query to find book ID based on provided book name or author name
       const query = bookName ? "SELECT id FROM books WHERE bookName = ?" : "SELECT id FROM books WHERE author = ?";
       const queryParams = [bookName || authorName];
@@ -30,22 +30,22 @@ const ReserveController = (app, db) => {
       // Check if the book is already reserved
       const bookQuantity = bookAvailability[0].bookCountAvailable
       // If the book is already reserved, return an error response
-      console.log(bookQuantity)
+     
       if (bookQuantity == 0) {
         return res.status(400).json({ success: false, message: "Book is not available for reservation" });
       }
 
-      console.log(memberName)
+    
       // Query to find member ID based on provided member name
       const [memberDetails] = await db.query("SELECT user_id FROM user_details WHERE userUsername = ?", [memberName]);
-      console.log(memberDetails)
+     
       // If member details are not found, return an error response
       if (memberDetails.length === 0) {
         return res.status(404).json({ success: false, message: "Member details not found" });
       }
 
       const memberId = memberDetails[0].user_id;
-      const [existingReservation] = await db.query( "SELECT * FROM book_reservations WHERE memberId = ? AND bookId = ? AND status = 'reserved'" , [memberId,bookId]);
+      const [existingReservation] = await db.query( "SELECT * FROM book_reservations WHERE memberId = ? AND bookId = ? AND status = 'reserved' OR status = 'Issued'" , [memberId,bookId]);
       if (existingReservation.length > 0) {
         return res.status(404).json({ success: false, message: "You have already reserved this book." });
       }
@@ -130,11 +130,10 @@ const ReserveController = (app, db) => {
   });
   app.get('/reservebookget1', async (req, res) => {
     try {
-      console.log('hello');
+     
       const { memberName } = req.query; // Access query parameters using req.query
-      console.log('hello');
-      console.log(memberName);
-      const [result] = await db.query("SELECT br.id as brid , bookName, author, b.id as id, userUserName, CostPerBook, shelf FROM book_reservations br JOIN books b ON br.bookId = b.id JOIN user_details m ON br.memberId = m.user_id WHERE userUserName = ?", [memberName]);
+    
+      const [result] = await db.query("SELECT br.id as brid , bookName, author, b.id as id, userUserName,  shelf FROM book_reservations br JOIN books b ON br.bookId = b.id JOIN user_details m ON br.memberId = m.user_id WHERE userUserName = ? AND br.status = 'reserved'", [memberName]);
       
       res.status(200).json({ result });
     } catch (error) {
@@ -142,17 +141,18 @@ const ReserveController = (app, db) => {
       res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
   });
+
   app.delete('/deleteReservation/:id', async (req, res) => {
     const id = req.params.id;
     const connection = await db.getConnection();
     try {
-      console.log(id)
+
       // Find the reservation by ID
       const [result] = await db.query("SELECT bookId from book_reservations WHERE id = ?", [id]);
       const bookId = result[0].bookId;
       
       const [bookAvailability] = await db.query(  "SELECT bookCountAvailable from books where id = ?", [bookId]);
-      console.log(bookAvailability)
+      
       // Check if the book is already reserved
       const bookQuantity = bookAvailability[0].bookCountAvailable
       await db.query("DELETE FROM book_reservations WHERE id = ?", [id]);
@@ -194,13 +194,13 @@ const ReserveController = (app, db) => {
     const id = req.params.id;
     const connection = await db.getConnection();
     try {
-      console.log(id)
+   
       // Find the reservation by ID
       const [result] = await db.query("SELECT bookId from book_reservations WHERE id = ?", [id]);
       const bookId = result[0].bookId;
       
       const [bookAvailability] = await db.query(  "SELECT bookCountAvailable from books where id = ?", [bookId]);
-      console.log(bookAvailability)
+     
       // Check if the book is already reserved
       const bookQuantity = bookAvailability[0].bookCountAvailable
       await db.query("DELETE FROM book_reservations WHERE id = ?", [id]);
@@ -237,7 +237,45 @@ const ReserveController = (app, db) => {
       return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
   });
+  app.get('/calculateTotalPrice', async (req, res) => {
+    try {
+      const { username } = req.query; 
+
+    
+      // Fetch reserved books from the database
+      const [user_details] = await db.query("SELECT user_id FROM user_details WHERE userUsername = ?", [username]);
+
+      const user_id = user_details[0].user_id;
+      const [reservedBooksRows] = await db.query("SELECT count(id) As totalreservations FROM book_reservations where memberId = ? AND  status = 'reserved'",[user_id]);
+      const total_reservations = reservedBooksRows[0].totalreservations;
+      // Calculate total price
+      const totalPrice = parseInt(total_reservations)*100
+  
+      // Send the total price as a response
+      res.status(200).json({ success: true, totalPrice });
+    } catch (error) {
+      console.error('Error calculating total price:', error);
+      res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+  });
+  app.post('/payNowTotal', async (req, res) => {
+    try {
+      // Process payment logic here
+      // For example, you can integrate with a payment gateway or process payments directly
+      // Here, we're simulating a successful payment
+      const totalPrice = req.body.totalPrice;
+      // Implement your payment processing logic here
+      console.log(`Payment processed successfully for total price: ${totalPrice}`);
+      res.status(200).json({ success: true, message: 'Payment processed successfully' });
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+  });
+  
+  
 };
+
 
 // Endpoint to get the total number of reservations
 

@@ -12,7 +12,7 @@ const BookSearch = () => {
   const [searchOption, setSearchOption] = useState('name');
   const [reservationResult, setReservationResult] = useState(null);
   const userData =JSON.parse(localStorage.getItem('userData'));
-const username = userData.username;
+  const username = userData.username;
   const handleSearch = async () => {
     try {
       const response = await axios.post('http://localhost:5002/search', {
@@ -61,7 +61,7 @@ const username = userData.username;
               <Link to="/book-search"><button className="menuButton">Book Search</button></Link>
               <Link to="/View-Data-Info"><button className="menuButton">View Data Info</button></Link>
               <Link to="/Return-book"><button className="menuButton">Return Book</button></Link>
-              <Link to="/Place-reservations"><button className="menuButton">Place Reservation</button></Link>
+              
               <Link to="/Signout"><button className="menuButton">Logout</button></Link>
             </nav>
           </header>

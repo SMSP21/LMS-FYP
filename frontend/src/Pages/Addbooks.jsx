@@ -9,7 +9,7 @@ const BookController = ({ db }) => {
     bookName: '',
     alternateTitle: '',
     author: '',
-    CostPerBook: 0,
+  
     publisher: '',
     bookCountAvailable: 0,
     bookStatus: '',
@@ -32,7 +32,7 @@ const BookController = ({ db }) => {
 
   const addBook = async () => {
     // Check if any required fields are empty
-    const requiredFields = ['bookName', 'author', 'CostPerBook', 'publisher', 'bookCountAvailable', 'bookStatus', 'shelf'];
+    const requiredFields = ['bookName', 'author',  'publisher', 'bookCountAvailable', 'bookStatus', 'shelf'];
     const emptyFields = requiredFields.filter(field => !bookData[field]);
   
     if (emptyFields.length > 0) {
@@ -150,19 +150,7 @@ const BookController = ({ db }) => {
                   onChange={handleInputChange}
                 />
 
-                <label htmlFor="CostPerBook" className="visually-hidden">
-                  Cost Per Book
-                </label>
-                <input
-                  type="number"
-                  id="CostPerBook"
-                  className="textInput"
-                  placeholder="Cost Per Book"
-                  aria-label="Cost Per Book"
-                  name="CostPerBook"
-                  value={bookData.CostPerBook}
-                  onChange={handleInputChange}
-                />
+           
 
                 <label htmlFor="publisher" className="visually-hidden">
                   Publisher

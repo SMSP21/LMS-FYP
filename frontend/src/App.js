@@ -9,7 +9,7 @@ import StaffDashboard from './Pages/StaffDashboard';
 import MemberDashboard from './Pages/MemberDashboard';
 import BookSearch from './Pages/BookSearch';
 import MemberLogin from './Pages/MemberLogin';
-import PlaceReservation from './Pages/PlaceReservation';
+
 import Payement from './Pages/Payement';
 import BookController from './Pages/Addbooks.jsx';
 import BookSearchS from './Pages/BookSearchStaff.jsx';
@@ -17,6 +17,7 @@ import ViewReservation from './Pages/ViewReservation';
 import { UserProvider } from './Pages/usercontext.js';
 import RegistrationStaff from './Pages/RegistrationFormStaff';
 import ViewDataInfo from './Pages/ViewDataInfo';
+import ReturnBook from './Pages/ReturnBook';
 const stripePromise = loadStripe('your_stripe_publishable_key');
 
 function App() {
@@ -37,13 +38,14 @@ function App() {
           <Route path="/Signout" element={<HomePage />} />
           <Route path="/MemberDashboard" element={<MemberDashboard />} />
           <Route path="/book-search" element={<BookSearch />} />
-          <Route path="/Place-reservations" element={<PlaceReservation />} />
+          
           <Route path="/add-books" element={< BookController/>} /> 
           <Route path="/book-searchs" element={<BookSearchS />} />
           
           <Route path="/RegistrationStaff" element={<RegistrationStaff />} />
           <Route path="/view-reservations" element={<ViewReservation />} />
           <Route path="/View-Data-Info" element={<ViewDataInfo />} />
+          <Route path="/Return-book" element={<ReturnBook />} />
           <Route
             path="/Payement"
             element={

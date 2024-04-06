@@ -33,7 +33,7 @@ function BookUpdate({ bookId, onUpdate, initialBook }) {
     bookName: '',
     alternateTitle: '',
     author: '',
-    CostPerBook: '',
+    
     publisher: '',
     bookCountAvailable: '',
     bookStatus: '',
@@ -105,16 +105,7 @@ function BookUpdate({ bookId, onUpdate, initialBook }) {
               onChange={(e) => handleUpdateField('author', e.target.value)}
             />
           </div>
-          {/* Cost Per Book */}
-          <div className="editField">
-            <label htmlFor="CostPerBook">Cost Per Book:</label>
-            <input
-              id="CostPerBook"
-              type="text"
-              value={updatedBook.CostPerBook}
-              onChange={(e) => handleUpdateField('CostPerBook', e.target.value)}
-            />
-          </div>
+        
           {/* Publisher */}
           <div className="editField">
             <label htmlFor="publisher">Publisher:</label>
@@ -268,7 +259,7 @@ const handleHideDetails = () => {
               <Link to="/add-books"><button className="menuButton">Add Books</button></Link>
               <Link to="/book-searchs"><button className="menuButton">Book Search</button></Link>
               <Link to="/RegistrationStaff"><button className="menuButton">Register User</button></Link>
-              <Link to="/view-reservations"><button className="menuButton">View Reservation</button></Link>
+             
               <Link to="/Signout"><button className="menuButton">Logout</button></Link>
             </nav>
           </header>

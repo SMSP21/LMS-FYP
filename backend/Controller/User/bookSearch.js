@@ -70,11 +70,11 @@ const bookSearch = async (app, db, port) => {
   // Update a book
   app.put("/books/:id", async (req, res) => {
     const bookId = req.params.id;
-    const { bookName, author, shelf, alternateTitle, CostPerBook, publisher, bookCountAvailable, bookStatus } = req.body;
-    console.log(bookName, author, shelf, alternateTitle, CostPerBook, publisher, bookCountAvailable, bookStatus);
+    const { bookName, author, shelf, alternateTitle,  publisher, bookCountAvailable, bookStatus } = req.body;
+    console.log(bookName, author, shelf, alternateTitle,  publisher, bookCountAvailable, bookStatus);
     try {
       // Update the book in the database
-      await db.query("UPDATE books SET bookName = ?, author = ?, shelf = ?, alternateTitle = ?, CostPerBook = ?, publisher = ?, bookCountAvailable = ?, bookStatus = ? WHERE id = ?", [bookName, author, shelf, alternateTitle, CostPerBook, publisher, bookCountAvailable, bookStatus, bookId]);
+      await db.query("UPDATE books SET bookName = ?, author = ?, shelf = ?, alternateTitle = ?,  publisher = ?, bookCountAvailable = ?, bookStatus = ? WHERE id = ?", [bookName, author, shelf, alternateTitle, publisher, bookCountAvailable, bookStatus, bookId]);
       res.status(200).json({ message: "Book updated successfully" });
     } catch (error) {
       console.error(error);
