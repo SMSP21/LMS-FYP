@@ -49,7 +49,7 @@ const ReserveController = (app, db) => {
       if (existingReservation.length > 0) {
         return res.status(404).json({ success: false, message: "You have already reserved this book." });
       }
-      // Start a database transaction
+      // Start a database transaction...
       const connection = await db.getConnection();
 
       try {
