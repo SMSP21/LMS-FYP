@@ -9,9 +9,6 @@ const IssueController = (app, db) => {
         const { reserveId } = req.body;
         
         console.log(reserveId)
-       
-
-
         
         const [result] = await connection.query(`
         UPDATE book_reservations 

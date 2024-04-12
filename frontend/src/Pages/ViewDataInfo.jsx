@@ -3,8 +3,11 @@ import axios from 'axios';
 import { Link } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import profileIcon from "../assets/profileIcon.jpg";
+
 import onlinelibrary from "../assets/onlineLibrary1.png";
+import {loadStripe} from '@stripe/stripe-js';
+import ViewProfile from './UserProfile'; // Import the ViewProfile component
+import Button from "./button";
 
 const ViewDataInfo = () => {
   const [reservedBooks, setReservedBooks] = useState([]);
@@ -12,6 +15,11 @@ const ViewDataInfo = () => {
   const [totalPrice, setTotalPrice] = useState(0); // State to store the total price
   const userData = JSON.parse(localStorage.getItem('userData'));
   const username = userData.username;
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const toggleProfileModal = () => {
+    setIsProfileModalOpen(!isProfileModalOpen);
+  };
 
   useEffect(() => {
     fetchReservedBooks();
@@ -36,17 +44,41 @@ const ViewDataInfo = () => {
       setLoading(false);
     }
   };
+  const khaltiCall = (data) => {
+    window.location.href = data.payment_url;
+  };
+  
+  const handlePayment = async () => {
+    const url = "http://localhost:5002/api/epayment/initiate/";
+    const data = {
+      id: 1,
+      products:  {product: "test", amount: totalPrice, quantity: 1 },
+      
+    };
 
-  const handlePayNow = async (bookId) => {
     try {
-      // Implement payment logic here
-      console.log("Pay Now clicked for book ID:", bookId);
-      await axios.post(`http://localhost:5002/markAsPaid/${bookId}`);
-      toast.success('Book marked as paid');
-      fetchReservedBooks(); // Refresh the list of reserved books after marking as paid
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Add any other headers as needed
+        },
+        body: JSON.stringify(data),
+      });
+
+      // Check if the request was successful (status code 2xx)
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log(responseData);
+  
+      
+          khaltiCall(responseData.data);
+        
+      } else {
+        console.error("Failed to fetch:", response.status, response.statusText);
+      }
     } catch (error) {
-      toast.error('Error marking book as paid');
-      console.error('Error marking book as paid:', error);
+      console.error("Error during fetch:", error);
     }
   };
 
@@ -94,7 +126,9 @@ const ViewDataInfo = () => {
       <div className="titleAndProfile">
         <h1 className="title">Library Management System</h1>
         <div className="profileIcon">
-          <img src={profileIcon} alt="Profile Icon" />
+        <button className="panel-button view-profile-button" onClick={toggleProfileModal}>
+        View Profile
+      </button>
         </div>
       </div>
       <img src={onlinelibrary} alt="" className="backgroundImage" />
@@ -106,7 +140,11 @@ const ViewDataInfo = () => {
               <Link to="/View-Data-Info"><button className="menuButton">View Data Info</button></Link>
               <Link to="/Return-book"><button className="menuButton">Return Book</button></Link>
               
-              <Link to="/Signout"><button className="menuButton">Logout</button></Link>
+              <Link to="/Signout">
+              <Button >
+                Signout
+              </Button>
+              </Link>
             </nav>
           </header>
           <main className="mainContent">
@@ -118,7 +156,8 @@ const ViewDataInfo = () => {
                       <th>Book Name</th>
                       <th>Author</th>
                       <th>Shelf</th>
-                      <th>Cost Per Book</th>
+                      <th>Cost Per Week</th>
+                      <th>Reserved At</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -132,11 +171,12 @@ const ViewDataInfo = () => {
                         <tr key={book.id}>
                           <td>{book.bookName}</td>
                           <td>{book.author}</td>
-                          <td>{book.shelf}</td>
+                          <td>{book.Shelf}</td>
                           <td>100</td>
+                          <td>{new Date(book.ReservedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
                           <td>
                             {!book.isPaid && (
-                              <button className="payNowButton" onClick={() => handlePayNow(book.id)}>Pay Now</button>
+                              <button className="payNowButton" >Pay Now</button>
                             )}
                             <button className="cancelButton" onClick={() => handleCancelReservation(book.brid)}>Cancel</button>
                           </td>
@@ -149,15 +189,20 @@ const ViewDataInfo = () => {
                     )}
                   </tbody>
                   <tfoot>
-                    <tr>
-                      <td colSpan="2"></td>
-                      <td>Total Price:</td>
-                      <td>{totalPrice}</td>
-                      <td>
-                        <button className="payNowButton" onClick={() => handlePayNowTotal()}>Pay Now</button>
-                      </td>
-                    </tr>
-                  </tfoot>
+                  {/* Total price row */}
+                  <tr className="totalPriceRow">
+                    <td colSpan="4">Total Price:</td>
+                    <td >{totalPrice}</td>
+                    <td > 
+                    <button
+                      style={{ background: "#55aa33", margin: 10 }}
+                      onClick={() => handlePayment()}
+                    >
+                      Handle Khalti Payment
+                    </button>
+                    </td>
+                  </tr>
+                </tfoot>
 
                 </table>
               </div>
@@ -165,6 +210,17 @@ const ViewDataInfo = () => {
           </main>
         </div>
       </section>
+                        {/* View Profile Modal */}
+                        {isProfileModalOpen && (
+        <div className="popup">
+          <div className="popup-content">
+            <span className="close" onClick={toggleProfileModal}>
+              &times;
+            </span>
+            <ViewProfile />
+          </div>
+        </div>
+      )}
       <ToastContainer />
     
 
@@ -409,7 +465,67 @@ const ViewDataInfo = () => {
           .cancelButton:hover {
             background-color: darkred;
           }
-          
+
+          .totalPriceRow {
+            background-color: lightgreen; 
+            font-weight: bold; /* Bold font for total price text */
+          }
+        
+          .totalPriceRow td {
+            border: none; /* Remove border for total price row cells */
+          }
+        
+          .totalPriceRow button {
+            background-color: green; 
+            color: #333; /* Dark text color for Pay Now button in total price row */
+            font-weight: bold; /* Bold font for Pay Now button text */
+          }
+        
+          .totalPriceRow button:hover {
+            background-color: darkgreen;           }
+            .panel-button.view-profile-button {
+              position: absolute;
+              top: 20px; /* Adjust the distance from the top as needed */
+              right: 20px; /* Adjust the distance from the right as needed */
+              z-index: 999; /* Ensure it's above other content */
+              padding: 10px 20px;
+              border-radius: 5px;
+              background-color: #
+            }
+            .popup {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0, 0, 0, 0.5);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              z-index: 1;
+            }
+    
+            .popup-content {
+              background: #fff;
+              padding: 20px;
+              border-radius: 8px;
+              max-width: 400px;
+              width: 100%;
+              position: relative;
+              z-index: 2;
+            }
+    
+            .close {
+              position: absolute;
+              top: 10px;
+              right: 10px;
+              font-size: 20px;
+              cursor: pointer;
+              z-index: 2;
+            }
+            .panel-button.view-profile-button:hover {
+              background-color: #1a18b6;
+            }
       `}</style>
     </>
   );

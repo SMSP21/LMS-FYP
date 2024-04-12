@@ -1,31 +1,42 @@
-import React from 'react';
-import { Link } from "react-router-dom";
-import onlinelibrary from "../assets/onlineLibrary1.png";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import onlinelibrary from '../assets/onlineLibrary1.png';
 import { useUser } from './usercontext';
+import ViewProfile from './UserProfile'; // Import the ViewProfile component
+import Button from "./button";
 
 function StaffDashboard() {
   const { state } = useUser();
-  const { stfUserName, stfUserType} = state;
-  const userData =JSON.parse(localStorage.getItem('userData'));
+  const { stfUserName, stfUserType } = state;
+  const userData = JSON.parse(localStorage.getItem('userData'));
   const username = userData.username;
-  
-  const panelItems = [
-    { key: 1, label: "Add Books", altText: "Add books to library", route: "/add-books" },
-    { key: 2, label: "Book Search", altText: "Search for books", route: "/book-searchs" },
-    { key: 3, label: "Register User", altText: "Update books information", route: "/RegistrationStaff" },
-    { key: 4, label: "View Reservations", altText: "View current reservations", route: "/view-reservations" },
-    { key: 5, label: "View Profile", altText: "View current profile", route: "/view-profile" },
 
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const toggleProfileModal = () => {
+    setIsProfileModalOpen(!isProfileModalOpen);
+  };
+
+  const panelItems = [
+    { key: 1, label: 'Add Shelfs', altText: 'Add Shelfs to library', route: '/add-shelfs' },
+    { key: 2, label: 'Add Books', altText: 'Add books to library', route: '/add-books' },
+    { key: 3, label: 'Book Search', altText: 'Search for books', route: '/book-searchs' },
+    { key: 4, label: 'Register User', altText: 'Update books information', route: '/RegistrationStaff' },
+    { key: 5, label: 'View Reservations', altText: 'View current reservations', route: '/view-reservations' },
+    { key: 6, label: 'User Detail', altText: 'View user detail', route: '/user-detail' },
+    
   ];
 
-console.log(username);
   return (
     <>
+    <button className="panel-button view-profile-button" onClick={toggleProfileModal}>
+    View Profile
+  </button>
       <header className="main-container">
         <div className="background-overlay">
           <div className="title-container">
-          <p>User Name: {username}</p>
-              <p>User Type: {stfUserType}</p>
+            <p>User Name: {username}</p>
+            <p>User Type: {stfUserType}</p>
             <h1 className="main-title">Library Management System</h1>
           </div>
         </div>
@@ -34,22 +45,36 @@ console.log(username);
         <div className="buttons-container">
           {panelItems.slice(0, 5).map((item) => (
             <div key={item.key} className="button-container">
-              <Link to={item.route}>
-                <button className="panel-button">
+              {item.route ? (
+                <Link to={item.route}>
+                  <button className="panel-button">{item.label}</button>
+                </Link>
+              ) : (
+                <button className={item.className} onClick={item.onClick}>
                   {item.label}
                 </button>
-              </Link>
+              )}
             </div>
           ))}
         </div>
         <div className="signout-container">
-          <Link to="/Signout">
-            <button className="panel-button signout-button">
-              Signout
-            </button>
-          </Link>
+        <Link to="/Signout">
+              <Button >
+                Signout
+              </Button>
+              </Link>
         </div>
       </main>
+
+      {/* Profile Modal */}
+      {isProfileModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={toggleProfileModal}>&times;</span>
+            <ViewProfile />
+          </div>
+        </div>
+      )}
       <style jsx>{`
         .main-container {
           position: relative;
@@ -145,6 +170,48 @@ console.log(username);
             background-size: cover;
           }
         }
+        .modal {
+          position: fixed;
+          top: 50%; /* Adjust this value as needed */
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 9999; /* Ensure it's above other content */
+        }
+        
+        .modal-content {
+          background-color: #fefefe;
+          border-radius: 10px;
+          padding: 20px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+          max-width: 600px;
+          width: 80%;
+        }
+        
+        .close {
+          cursor: pointer;
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          font-size: 24px;
+        }
+        .panel-button.view-profile-button {
+          position: absolute;
+          top: 20px; /* Adjust the distance from the top as needed */
+          right: 20px; /* Adjust the distance from the right as needed */
+          z-index: 999; /* Ensure it's above other content */
+          padding: 10px 20px;
+          border-radius: 5px;
+          background-color: #
+        }
+        .panel-button.view-profile-button:hover {
+          background-color: #1a18b6;
+        }
+        
+        
       `}</style>
     </>
   );

@@ -10,6 +10,7 @@ app.put("/updatebook/:bookId", async (req, res) => {
 
     // Destructuring updated book details from the request body
     const {
+      ISBN,
       bookName,
       alternateTitle,
       author,
@@ -17,7 +18,7 @@ app.put("/updatebook/:bookId", async (req, res) => {
       publisher,
       bookCountAvailable,
       bookStatus,
-      shelf
+      shelfId
     } = req.body;
 
     // Acquiring a connection from the database pool and starting a transaction
@@ -41,6 +42,7 @@ app.put("/updatebook/:bookId", async (req, res) => {
       const [result] = await connection.query(`
         UPDATE books 
         SET 
+        ISBN = ?,
           bookName = ?,
           alternateTitle = ?,
           author = ?,
@@ -48,9 +50,9 @@ app.put("/updatebook/:bookId", async (req, res) => {
           publisher = ?,
           bookCountAvailable = ?,
           bookStatus = ?,
-          shelf = ?
+          shelfId = ?
         WHERE id = ?
-      `, [bookName, alternateTitle, author,  publisher, bookCountAvailable, bookStatus, shelf, bookId]);
+      `, [ISBN, bookName, alternateTitle, author,  publisher, bookCountAvailable, bookStatus, shelfId, bookId]);
 
       // Rolling back the transaction if the book update fails
       if (result.affectedRows !== 1) {

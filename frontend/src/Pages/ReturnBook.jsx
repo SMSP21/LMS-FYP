@@ -5,33 +5,49 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import profileIcon from "../assets/profileIcon.jpg";
 import onlinelibrary from "../assets/onlineLibrary1.png";
+import ViewProfile from './UserProfile'; // Import the ViewProfile component
+import Button from "./button";
+
 
 const ReturnBook = () => {
   const [reservedBooks, setReservedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showFinePopup, setShowFinePopup] = useState(false);
   const [fineAmount, setFineAmount] = useState(0);
+  const [daysOverdue, setDueDays] = useState(0); // State to store due days
   const [showFineErrorMessage, setShowFineErrorMessage] = useState(false); // State to show fine error message
   const userData = JSON.parse(localStorage.getItem('userData'));
   const username = userData.username;
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const toggleProfileModal = () => {
+    setIsProfileModalOpen(!isProfileModalOpen);
+  };
 
   useEffect(() => {
     fetchReservedBooks();
   }, []);
 
-  useEffect(() => {
-    const handleOutsideClick = (event) => {
-      if (showFinePopup && !event.target.closest(".finePopup")) {
-        setShowFinePopup(false);
-      }
-    };
+  // useEffect hook to handle clicks outside the finePopup element
+useEffect(() => {
+  // Event handler function to handle clicks outside the finePopup
+  const handleOutsideClick = (event) => {
+    // Check if showFinePopup is true and the clicked target is not inside the finePopup
+    if (showFinePopup && !event.target.closest(".finePopup")) {
+      // If conditions are met, hide the finePopup by setting showFinePopup to false
+      setShowFinePopup(false);
+    }
+  };
 
-    document.addEventListener("mousedown", handleOutsideClick);
+  // Add event listener for mousedown event on the document
+  document.addEventListener("mousedown", handleOutsideClick);
 
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }, [showFinePopup]);
+  // Cleanup function to remove the event listener when the component unmounts or when showFinePopup changes
+  return () => {
+    document.removeEventListener("mousedown", handleOutsideClick);
+  };
+}, [showFinePopup]); // Dependency array with showFinePopup, so useEffect runs when showFinePopup changes
+
 
   const fetchReservedBooks = async () => {
     try {
@@ -48,7 +64,7 @@ const ReturnBook = () => {
     }
   };
 
-  const handlereturnNow = async (reservationId) => {
+  const handlereturnNow = async (reservationId, daysOverdue) => { // Passing daysOverdue parameter
     try {
       const response = await axios.post('http://localhost:5002/returnbook', {
         reserveId: reservationId
@@ -61,7 +77,10 @@ const ReturnBook = () => {
         // If a fine is needed to be paid, show the fine popup
         if (responseData.fine) {
           setFineAmount(responseData.fine);
+          setDueDays(responseData.daysOverdue); // Set due days in the state
           setShowFinePopup(true);
+          console.log(daysOverdue)
+          
         } else {
           // Show error message if fine is required but not provided
           setShowFineErrorMessage(true);
@@ -72,7 +91,6 @@ const ReturnBook = () => {
       console.error('Error returning book:', error);
     }
   };
-
   const handlePayFine = async () => {
     try {
       // Call the backend API to process the payment for the fine
@@ -90,7 +108,9 @@ const ReturnBook = () => {
       <div className="titleAndProfile">
         <h1 className="title">Library Management System</h1>
         <div className="profileIcon">
-          <img src={profileIcon} alt="Profile Icon" />
+        <button className="panel-button view-profile-button" onClick={toggleProfileModal}>
+        View Profile
+      </button>
         </div>
       </div>
       <img src={onlinelibrary} alt="" className="backgroundImage" />
@@ -101,7 +121,11 @@ const ReturnBook = () => {
               <Link to="/book-search"><button className="menuButton">Book Search</button></Link>
               <Link to="/View-Data-Info"><button className="menuButton">View Data Info</button></Link>
               <Link to="/Return-book"><button className="menuButton">Return Book</button></Link>
-              <Link to="/Signout"><button className="menuButton">Logout</button></Link>
+              <Link to="/Signout">
+              <Button >
+                Signout
+              </Button>
+              </Link>
             </nav>
           </header>
           <main className="mainContent">
@@ -128,7 +152,7 @@ const ReturnBook = () => {
                           <td>{book.author}</td>
                           <td>{book.shelf}</td>
                           <td>
-                            <button className="returnButton" onClick={() => handlereturnNow(book.brid)}>Return</button>
+                          <button className="returnButton" onClick={() => handlereturnNow(book.brid, book.daysOverdue)}>Return</button> {/* Pass due days */}
                           </td>
                         </tr>
                       ))
@@ -149,8 +173,21 @@ const ReturnBook = () => {
         <div className="finePopup">
           <div className="fineContent">
             <h2>Fine Amount: {fineAmount}</h2>
+            <h2>Due Days: {daysOverdue - 7 }</h2> {/* Display due days */}
             <button className="payNowButton" onClick={handlePayFine}>Pay Now</button>
             <button className="closeButton" onClick={() => setShowFinePopup(false)}>Close</button>
+          </div>
+        </div>
+      )}
+
+          {/* View Profile Modal */}
+          {isProfileModalOpen && (
+        <div className="popup">
+          <div className="popup-content">
+            <span className="close" onClick={toggleProfileModal}>
+              &times;
+            </span>
+            <ViewProfile />
           </div>
         </div>
       )}
@@ -432,6 +469,50 @@ const ReturnBook = () => {
           
           .returnButton:hover {
             background-color: #1a18b6; /* Darker shade of blue on hover */
+          }
+          .panel-button.view-profile-button {
+            position: absolute;
+            top: 20px; /* Adjust the distance from the top as needed */
+            right: 20px; /* Adjust the distance from the right as needed */
+            z-index: 999; /* Ensure it's above other content */
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #
+          }
+          
+          .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+          }
+  
+          .popup-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+          }
+  
+          .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 2;
+          }
+          .panel-button.view-profile-button:hover {
+            background-color: #1a18b6;
           }
       `}</style>
     </>

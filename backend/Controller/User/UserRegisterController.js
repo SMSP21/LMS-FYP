@@ -1,3 +1,5 @@
+const nodemailer = require('nodemailer');
+
 // Defining the UserRegisterController function that takes 'app' and 'db' as parameters
 const UserRegisterController = (app, db) => {
   
@@ -20,6 +22,7 @@ const UserRegisterController = (app, db) => {
         userEmail,
         userUserName,
         userPassword,
+        userConfirmPassword,
         userType
       } = req.body;
 
@@ -39,7 +42,33 @@ const UserRegisterController = (app, db) => {
       if (existingEmail.length > 0) {
         return res.status(400).json({ success: false, message: "Email already exists" });
       }
-
+      try {
+        // Create a Nodemailer transporter
+        const transporter = nodemailer.createTransport({
+          service: 'Gmail', // Use your email service provider here
+          auth: {
+            user: 'supratikmspradhan@gmail.com', // Your email address
+            pass: 'mxky vnxi iqkn zdds', // Your email password or app password
+          },
+        });
+  
+        // Define email options
+        const mailOptions = {
+          from: 'supratikmspradhan@gmail.com', // Sender address
+          to: userEmail, // Recipient address
+          subject: 'Welcome to Library Management System', // Subject line
+          text: `Thank You !! ${userFullName}  for Registering as a Member in Library Management System!!`, // Plain text body
+        };
+  
+        // Send email
+        await transporter.sendMail(mailOptions);
+  
+        
+        console.log("email sent sucessful")
+      } catch (error) {
+        console.error('Error sending email:', error);
+        
+      }
       // Start a new database transaction for each registration
       const connection = await db.getConnection();
 
@@ -89,6 +118,7 @@ const UserRegisterController = (app, db) => {
       res.status(500).json({ success: false, error: error.message || "Internal Server Error" });
     }
   });
+
 };
 
 // Exporting the UserRegisterController function for external use

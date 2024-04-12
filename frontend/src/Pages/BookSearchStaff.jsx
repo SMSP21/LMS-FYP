@@ -4,7 +4,10 @@ import { Link } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import onlinelibrary from "../assets/onlineLibrary1.png";
-import profileIcon from "../assets/profileIcon.jpg";
+
+import ViewProfile from './UserProfile'; // Import the ViewProfile component
+import Button from "./button";
+
 
 // BookDetails Component
 function BookDetails({ bookId, onDelete }) {
@@ -14,7 +17,7 @@ function BookDetails({ bookId, onDelete }) {
       toast.success('Book deleted successfully!');
       onDelete(bookId); // Notify the parent component about the deletion
     } catch (error) {
-      toast.error('Error deleting book');
+      toast.error('Book has been Reserved by a User');
     }
   };
 
@@ -30,14 +33,14 @@ function BookDetails({ bookId, onDelete }) {
 function BookUpdate({ bookId, onUpdate, initialBook }) {
   const [isEditing, setIsEditing] = useState(false);
   const [updatedBook, setUpdatedBook] = useState(initialBook || { 
+    ISBN:'',
     bookName: '',
     alternateTitle: '',
     author: '',
-    
     publisher: '',
     bookCountAvailable: '',
     bookStatus: '',
-    shelf: ''
+    shelfId: ''
   });
   const [showBookDetails, setShowBookDetails] = useState(!isEditing); // Initially hide book details when not editing
 
@@ -75,6 +78,15 @@ function BookUpdate({ bookId, onUpdate, initialBook }) {
       {isEditing ? (
         // Edit mode UI
         <div className="editFieldsContainer">
+           <div className="editField">
+            <label htmlFor="ISBN">ISBN:</label>
+            <input
+              id="ISBN"
+              type="text"
+              value={updatedBook.ISBN}
+              onChange={(e) => handleUpdateField('ISBN', e.target.value)}
+            />
+          </div>
           <div className="editField">
             <label htmlFor="bookName">Book Name:</label>
             <input
@@ -140,12 +152,12 @@ function BookUpdate({ bookId, onUpdate, initialBook }) {
           </div>
           {/* Shelf */}
           <div className="editField">
-            <label htmlFor="shelf">Shelf:</label>
+            <label htmlFor="shelfId">ShelfId:</label>
             <input
-              id="shelf"
+              id="shelfId"
               type="text"
-              value={updatedBook.shelf}
-              onChange={(e) => handleUpdateField('shelf', e.target.value)}
+              value={updatedBook.shelfId}
+              onChange={(e) => handleUpdateField('shelfId', e.target.value)}
             />
           </div>
           {/* Save and Cancel Buttons */}
@@ -176,10 +188,15 @@ function BookUpdate({ bookId, onUpdate, initialBook }) {
 function BookSearchS() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [searchOption, setSearchOption] = useState('name');
+  const [searchOption, setSearchOption] = useState('bookName');
   const [showBookDetails, setShowBookDetails] = useState(true); // State variable to manage visibility
   const userData =JSON.parse(localStorage.getItem('userData'));
   const username = userData.username;
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const toggleProfileModal = () => {
+    setIsProfileModalOpen(!isProfileModalOpen);
+  };
 
   useEffect(() => {
     fetchAllBooks();
@@ -216,7 +233,7 @@ function BookSearchS() {
       toast.success('Book deleted successfully!');
       setSearchResults(searchResults.filter(book => book.id !== deletedBookId));
     } catch (error) {
-      toast.error('Error deleting book');
+      toast.error('Book has been Reserved by a User');
     }
   };
 
@@ -244,7 +261,9 @@ const handleHideDetails = () => {
       <div className="titleAndProfile">
         <h1 className="title">Library Management System</h1>
         <div className="profileIcon">
-          <img src={profileIcon} alt="Profile Icon" />
+        <button className="panel-button view-profile-button" onClick={toggleProfileModal}>
+        View Profile
+      </button>
         </div>
       </div>
 
@@ -256,11 +275,21 @@ const handleHideDetails = () => {
         <div className="wrapper">
           <header className="header">
             <nav className="navigationContainer">
+            <Link to="/add-shelfs">
+                <button className="menuButton">Add Shelfs</button>
+              </Link>
               <Link to="/add-books"><button className="menuButton">Add Books</button></Link>
               <Link to="/book-searchs"><button className="menuButton">Book Search</button></Link>
               <Link to="/RegistrationStaff"><button className="menuButton">Register User</button></Link>
-             
-              <Link to="/Signout"><button className="menuButton">Logout</button></Link>
+              <Link to="/view-reservations"><button className="menuButton">View Reservation</button></Link>
+              <Link to="/user-detail">
+                <button className="menuButton">User Detail</button>
+              </Link>
+              <Link to="/Signout">
+              <Button >
+                Signout
+              </Button>
+              </Link>
             </nav>
           </header>
           <main className="mainContent">
@@ -270,9 +299,10 @@ const handleHideDetails = () => {
                 <div className="searchInput">
                   <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Enter search term" />
                   <select value={searchOption} onChange={(e) => setSearchOption(e.target.value)}>
-                    <option value="name">Name</option>
+               
+                    <option value="bookName">Name</option>
                     <option value="author">Author</option>
-                    <option value="shelf">Shelf</option>
+                    <option value="shelfId">Shelf</option>
                   </select>
                   <button onClick={handleSearch} className="searchButton">Search</button>
                 </div>
@@ -282,6 +312,7 @@ const handleHideDetails = () => {
                 <table className="bookTable">
                   <thead>
                     <tr>
+                    <th>ISBN</th>
                       <th>Name</th>
                       <th>Author</th>
                       <th>Shelf</th>
@@ -291,9 +322,10 @@ const handleHideDetails = () => {
                   <tbody>
                     {searchResults.map((book) => (
                       <tr key={book.id}>
+                        <td>{book.ISBN}</td>
                         <td>{book.bookName}</td>
                         <td>{book.author}</td>
-                        <td>{book.shelf}</td>
+                        <td>{book.Shelf}</td>
                         <td>
                           {/* Conditionally render BookUpdate */}
                           {book.isEditing ? (
@@ -311,6 +343,17 @@ const handleHideDetails = () => {
                 </table>
               </div>
             </section>
+                  {/* View Profile Modal */}
+      {isProfileModalOpen && (
+        <div className="popup">
+          <div className="popup-content">
+            <span className="close" onClick={toggleProfileModal}>
+              &times;
+            </span>
+            <ViewProfile />
+          </div>
+        </div>
+      )}
           </main>
         </div>
       </section>
@@ -588,9 +631,50 @@ const handleHideDetails = () => {
           .bookDetails {
             margin-top: 1rem;
           }
+          .panel-button.view-profile-button {
+            position: absolute;
+            top: 20px; /* Adjust the distance from the top as needed */
+            right: 20px; /* Adjust the distance from the right as needed */
+            z-index: 999; /* Ensure it's above other content */
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #
+          }
+          .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+          }
+  
+          .popup-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+          }
+  
+          .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 2;
+          }
           
-          
-          
+          .panel-button.view-profile-button:hover {
+            background-color: #1a18b6;
+          }
       `}</style>
     </>
   );

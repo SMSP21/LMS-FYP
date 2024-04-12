@@ -10,6 +10,10 @@ const bookSearch = require('../Controller/User/bookSearch');
 const ReturnController = require('../Controller/User/returnBook');
 const IssueController = require('../Controller/User/issueBook');
 const UserProfile = require('../Controller/User/userProfile')
+const ShelfController = require('../Controller/User/shelf');
+const OrderController = require('../Controller/User/OrderController');
+const KhaltiController = require('../Controller/User/KhaltiController');
+const PayNowController = require('../Controller/User/PayNowcontroller');
 
 const app = express();
 const port = 5002;
@@ -42,12 +46,16 @@ app.use('/api', router); // This will handle routes starting with /api
 // Use the correct function name UserRegisterController
 UserRegisterController(app, db);
 BookController(app, db);
+ShelfController(app, db);
 ReserveController(app, db);
 BookUpdate(app, db); 
 bookSearch(app, db);
 ReturnController(app, db);
 IssueController(app, db);
-
+UserProfile (app,db);
+OrderController(app, db);
+KhaltiController(app, db);
+PayNowController(app, db);
 app.use('/',UserLoginController (db)); 
 
 // Now you can continue defining other routes and middleware

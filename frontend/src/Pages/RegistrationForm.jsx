@@ -4,6 +4,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import onlinelibrary from "../assets/onlineLibrary1.png";
 import rectangle3 from "../assets/rectangle3.jpeg";
+import axios from 'axios'; // Import axios
 
 function RegistrationForm() {
   const [formData, setFormData] = useState({
@@ -67,6 +68,21 @@ function RegistrationForm() {
     } catch (error) {
       console.error('Error during registration:', error);
       toast.error('Internal Server Error. Please try again later.');
+    }
+  };
+  const sendEmail = async (userEmail) => {
+    try {
+      // Make API call to your backend to send email using Nodemailer or another email service
+      const emailResponse = await axios.post('http://localhost:5002/sendemail', { userEmail });
+  
+      // Check if email sending was successful
+      if (emailResponse.status === 200) {
+        console.log('Email sent successfully!');
+      } else {
+        console.error('Email sending failed');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
     }
   };
   return (

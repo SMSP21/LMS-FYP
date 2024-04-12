@@ -3,20 +3,47 @@ import axios from 'axios';
 import { Link } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import profileIcon from "../assets/profileIcon.jpg";
+
 import onlinelibrary from "../assets/onlineLibrary1.png";
+import ViewProfile from './UserProfile'; // Import the ViewProfile component
+import Button from "./button";
 
 const ViewDataInfo = () => {
   const [reservedBooks, setReservedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reserveTotal, setReserveTotal] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchOption, setSearchOption] = useState('name');
   const userData = JSON.parse(localStorage.getItem('userData'));
   const username = userData.username;
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const toggleProfileModal = () => {
+    setIsProfileModalOpen(!isProfileModalOpen);
+  };
 
   useEffect(() => {
     fetchReservedBooks();
     reserveCount();
   }, []);
+
+  const handleSearch = async () => {
+    try {
+      const response = await axios.post('http://localhost:5002/searchreservedbook', {
+        searchTerm,
+        searchOption,
+        username,
+      });
+      setSearchResults(response.data);
+      if (response.data.length === 0) {
+        toast.info('No Reserved books found');
+      }
+    } catch (error) {
+      toast.error('Error searching for Reserved books');
+      setSearchResults([]);
+    }
+  };
 
   const fetchReservedBooks = async () => {
     try {
@@ -61,7 +88,9 @@ const ViewDataInfo = () => {
       <div className="titleAndProfile">
         <h1 className="title">Library Management System</h1>
         <div className="profileIcon">
-          <img src={profileIcon} alt="Profile Icon" />
+          <button className="panel-button view-profile-button" onClick={toggleProfileModal}>
+            View Profile
+          </button>
         </div>
       </div>
       <img src={onlinelibrary} alt="" className="backgroundImage" />
@@ -69,11 +98,21 @@ const ViewDataInfo = () => {
         <div className="wrapper">
           <header className="header">
             <nav className="navigationContainer">
+              <Link to="/add-shelfs">
+                <button className="menuButton">Add Shelfs</button>
+              </Link>
               <Link to="/add-books"><button className="menuButton">Add Books</button></Link>
               <Link to="/book-searchs"><button className="menuButton">Book Search</button></Link>
               <Link to="/RegistrationStaff"><button className="menuButton">Register User</button></Link>
               <Link to="/view-reservations"><button className="menuButton">View Reservation</button></Link>
-              <Link to="/Signout"><button className="menuButton">Logout</button></Link>
+              <Link to="/user-detail">
+                <button className="menuButton">User Detail</button>
+              </Link>
+              <Link to="/Signout">
+                <Button>
+                  Signout
+                </Button>
+              </Link>
             </nav>
           </header>
           <main className="mainContent">
@@ -95,43 +134,85 @@ const ViewDataInfo = () => {
                   </div>
                 </div>
               </div>
-              <h2 className="heading">Reservation Made</h2>
+              
+              <h2 className="searchHeader">Search Books</h2>
+              <div className="searchContainer">
+                <div className="searchInput">
+                  <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Enter search term" />
+                  <select value={searchOption} onChange={(e) => setSearchOption(e.target.value)}>
+               
+                    <option value="bookName">Name</option>
+                    <option value="author">Author</option>
+                    <option value="shelfId">Shelf</option>
+                  </select>
+                  <button onClick={handleSearch} className="searchButton">Search</button>
+                </div>
+              </div>
+              <h2 className="heading">Reserved Books</h2>
               {loading ? (
                 <p>Loading...</p>
-              ) : reservedBooks.length > 0 ? (
+              ) : (
                 <div className="tableContainer">
                   <table className="bookTable">
                     <thead>
                       <tr>
+                        <th>ISBN</th>
                         <th>Name</th>
                         <th>Author</th>
                         <th>Shelf</th>
                         <th>Member</th>
-                        <th>Action</th> {/* New column for delete button */}
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {reservedBooks.map((book) => (
-                        <tr key={book.id}>
-                          <td>{book.bookName}</td>
-                          <td>{book.author}</td>
-                          <td>{book.shelf}</td>
-                          <td>{book.userUserName}</td>
-                          <td>
-                            <button className="deleteButton" onClick={() => deleteReservation(book.brid)}>Delete</button>
-                          </td>
-                        </tr>
-                      ))}
+                      {searchResults.length > 0 ? (
+                        // Display search results if available
+                        searchResults.map((book) => (
+                          <tr key={book.id}>
+                            <td>{book.ISBN}</td>
+                            <td>{book.bookName}</td>
+                            <td>{book.author}</td>
+                            <td>{book.Shelf}</td>
+                            <td>{book.userUserName}</td>
+                            <td>
+                              <button className="deleteButton" onClick={() => deleteReservation(book.brid)}>Delete</button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        // Display reserved books if no search results
+                        reservedBooks.map((book) => (
+                          <tr key={book.id}>
+                            <td>{book.ISBN}</td>
+                            <td>{book.bookName}</td>
+                            <td>{book.author}</td>
+                            <td>{book.Shelf}</td>
+                            <td>{book.userUserName}</td>
+                            <td>
+                              <button className="deleteButton" onClick={() => deleteReservation(book.brid)}>Delete</button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
-              ) : (
-                <p className="noResults">No reserved books found</p>
               )}
             </section>
           </main>
         </div>
       </section>
+      {/* View Profile Modal */}
+      {isProfileModalOpen && (
+        <div className="popup">
+          <div className="popup-content">
+            <span className="close" onClick={toggleProfileModal}>
+              &times;
+            </span>
+            <ViewProfile />
+          </div>
+        </div>
+      )}
       <ToastContainer />
 
       <style jsx>{`
@@ -284,6 +365,93 @@ const ViewDataInfo = () => {
 
         .deleteButton:hover {
           background-color: #ff4c32;
+        }
+        .panel-button.view-profile-button {
+          position: absolute;
+          top: 20px; /* Adjust the distance from the top as needed */
+          right: 20px; /* Adjust the distance from the right as needed */
+          z-index: 999; /* Ensure it's above other content */
+          padding: 10px 20px;
+          border-radius: 5px;
+          background-color: #
+        }
+        .panel-button.view-profile-button:hover {
+          background-color: #1a18b6;
+        }
+        .popup {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1;
+        }
+
+        .popup-content {
+          background: #fff;
+          padding: 20px;
+          border-radius: 8px;
+          max-width: 400px;
+          width: 100%;
+          position: relative;
+          z-index: 2;
+        }
+
+        .close {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          font-size: 20px;
+          cursor: pointer;
+          z-index: 2;
+        }
+        .searchSection {
+          margin-top: 2rem;
+          padding: 2rem;
+          background-color: #fff;
+          border-radius: 8px;
+          box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .searchHeader {
+          color: white;
+          margin-bottom: 1rem;
+        }
+
+        .searchContainer {
+          margin-top: 1rem;
+        }
+
+        .searchInput {
+          display: flex;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+
+        .searchInput input[type="text"],
+        .searchInput select {
+          margin-right: 1rem;
+          padding: 0.5rem;
+          border-radius: 4px;
+          border: 1px solid #ccc;
+        }
+
+        .searchButton {
+          background-color: #2b27ee;
+          color: #fff;
+          cursor: pointer;
+          padding: 0.5rem 1rem;
+          font-size: 18px;
+          border: none;
+          border-radius: 4px;
+        }
+
+        .searchButton:hover {
+          background-color: #1a18b6;
         }
       `}</style>
     </>

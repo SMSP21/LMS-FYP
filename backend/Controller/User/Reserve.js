@@ -5,16 +5,27 @@ const app = express();
 const ReserveController = (app, db) => {
   app.post("/reservebook", async (req, res) => {
     try {
-      const { memberName, bookName, authorName } = req.body;
+      const { memberName, bookName, authorName, ISBN } = req.body;
 
-      // Check if required fields are provided
-      if (!memberName || !(bookName || authorName)) {
-        return res.status(400).json({ success: false, message: "Member name and either book name or author name are required" });
-      }
-  
-      // Query to find book ID based on provided book name or author name
-      const query = bookName ? "SELECT id FROM books WHERE bookName = ?" : "SELECT id FROM books WHERE author = ?";
-      const queryParams = [bookName || authorName];
+ // Check if required fields are provided
+if (!memberName || !(bookName || authorName || ISBN)) {
+  return res.status(400).json({ success: false, message: "Member name and either book name or author name or ISBN are required" });
+}
+
+let query;
+let queryParams;
+
+if (bookName) {
+  query = "SELECT id FROM books WHERE bookName = ?";
+  queryParams = [bookName];
+} else if (authorName) {
+  query = "SELECT id FROM books WHERE author = ?";
+  queryParams = [authorName];
+} else {
+  query = "SELECT id FROM books WHERE ISBN = ?";
+  queryParams = [ISBN];
+}
+   
 
       // Execute the query to find the book ID
       const [result] = await db.query(query, queryParams);
@@ -34,7 +45,7 @@ const ReserveController = (app, db) => {
       if (bookQuantity == 0) {
         return res.status(400).json({ success: false, message: "Book is not available for reservation" });
       }
-
+      
     
       // Query to find member ID based on provided member name
       const [memberDetails] = await db.query("SELECT user_id FROM user_details WHERE userUsername = ?", [memberName]);
@@ -45,7 +56,7 @@ const ReserveController = (app, db) => {
       }
 
       const memberId = memberDetails[0].user_id;
-      const [existingReservation] = await db.query( "SELECT * FROM book_reservations WHERE memberId = ? AND bookId = ? AND status = 'reserved' OR status = 'Issued'" , [memberId,bookId]);
+      const [existingReservation] = await db.query( "SELECT * FROM book_reservations WHERE memberId = ? AND bookId = ? AND (status = 'reserved' OR status = 'Issued')" , [memberId,bookId]);
       if (existingReservation.length > 0) {
         return res.status(404).json({ success: false, message: "You have already reserved this book." });
       }
@@ -120,7 +131,7 @@ const ReserveController = (app, db) => {
       
       // Query the database to get the total count of reservations
       
-      const [result] = await db.query('SELECT br.id as brid , bookName, author, b.id as id, userUserName, shelf from  book_reservations br join books b on br.bookId = b.id join user_details m on br.memberId = m.user_id');
+      const [result] = await db.query('SELECT br.id as brid ,ISBN,  bookName, author, b.id as id, userUserName, s.shelfName as Shelf from  book_reservations br join books b on br.bookId = b.id join user_details m on br.memberId = m.user_id join shelf s on s.shelfId = b.shelfId');
       
       res.status(200).json({ result });
     } catch (error) {
@@ -133,7 +144,7 @@ const ReserveController = (app, db) => {
      
       const { memberName } = req.query; // Access query parameters using req.query
     
-      const [result] = await db.query("SELECT br.id as brid , bookName, author, b.id as id, userUserName,  shelf FROM book_reservations br JOIN books b ON br.bookId = b.id JOIN user_details m ON br.memberId = m.user_id WHERE userUserName = ? AND br.status = 'reserved'", [memberName]);
+      const [result] = await db.query("SELECT br.id as brid ,ISBN, br.createdAt as ReservedAt,  bookName, author, b.id as id, userUserName, s.shelfName as Shelf from  book_reservations br join books b on br.bookId = b.id join user_details m on br.memberId = m.user_id join shelf s on s.shelfId = b.shelfId WHERE userUserName = ? AND br.status = 'reserved'", [memberName]);
       
       res.status(200).json({ result });
     } catch (error) {
@@ -272,6 +283,51 @@ const ReserveController = (app, db) => {
       res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
   });
+
+  app.post('/searchreservedbook', async (req, res) => {
+    try {
+      const { searchTerm, searchOption } = req.body;
+  
+      if (!searchTerm) {
+        return res.status(400).json({
+          error: 'Search term is required'
+        });
+      }
+      
+      let query;
+    
+      if (searchOption === 'name') {
+        query = "SELECT br.*,b.*, s.shelfName as Shelf,userUserName FROM BOOKS b join shelf s on s.shelfId = b.shelfId join book_reservations br on b.id = br.bookId join user_details m on br.memberId = m.user_id WHERE bookName LIKE ? AND br.status = 'reserved'";
+      } else if (searchOption === 'author') {
+        query = "SELECT br.*,b.*, s.shelfName as Shelf,userUserName FROM BOOKS b join shelf s on s.shelfId = b.shelfId join book_reservations br on b.id = br.bookId join user_details m on br.memberId = m.user_id WHERE author LIKE ? AND br.status = 'reserved'";
+      } else if (searchOption === 'shelfId') {
+        query = "SELECT br.*,b.*, s.shelfName as Shelf,userUserName FROM BOOKS b join shelf s on s.shelfId = b.shelfId join book_reservations br on b.id = br.bookId join user_details m on br.memberId = m.user_id WHERE s.shelfName LIKE ? AND br.status = 'reserved' OR br.status ='Issued'";
+      } else {
+        return res.status(400).json({
+          error: 'Invalid search option'
+        });
+        
+      }
+      
+      const searchValue = `%${searchTerm}%`;
+      
+      const [results] = await db.query(query, [searchValue]);
+      
+      if (results.length === 0) {
+        return res.status(404).json({
+          error: 'No books found'
+        });
+      }
+      
+      res.json(results); 
+    } catch (error) {
+      console.error('Error executing search query:', error);
+      res.status(500).json({
+        error: 'Internal server error'
+      });
+    }
+  });
+
   
   
 };

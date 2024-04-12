@@ -4,15 +4,23 @@ import { Link } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import onlinelibrary from "../assets/onlineLibrary1.png";
-import profileIcon from "../assets/profileIcon.jpg";
+
+import ViewProfile from './UserProfile'; // Import the ViewProfile component
+import Button from "./button";
+
 
 const BookSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [searchOption, setSearchOption] = useState('name');
+  const [searchOption, setSearchOption] = useState('bookName');
   const [reservationResult, setReservationResult] = useState(null);
   const userData =JSON.parse(localStorage.getItem('userData'));
   const username = userData.username;
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const toggleProfileModal = () => {
+    setIsProfileModalOpen(!isProfileModalOpen);
+  };
   const handleSearch = async () => {
     try {
       const response = await axios.post('http://localhost:5002/search', {
@@ -35,6 +43,7 @@ const BookSearch = () => {
       const response = await axios.post('http://localhost:5002/reservebook', {
        
         memberName: username, // Replace 'YourMemberName' with actual member name
+        ISBN: book.ISBN,
         bookName: book.bookName,
         authorName: book.author
       });
@@ -49,7 +58,9 @@ const BookSearch = () => {
       <div className="titleAndProfile">
         <h1 className="title">Library Management System</h1>
         <div className="profileIcon">
-          <img src={profileIcon} alt="Profile Icon" />
+        <button className="panel-button view-profile-button" onClick={toggleProfileModal}>
+        View Profile
+      </button>
         </div>
       </div>
 
@@ -61,8 +72,11 @@ const BookSearch = () => {
               <Link to="/book-search"><button className="menuButton">Book Search</button></Link>
               <Link to="/View-Data-Info"><button className="menuButton">View Data Info</button></Link>
               <Link to="/Return-book"><button className="menuButton">Return Book</button></Link>
-              
-              <Link to="/Signout"><button className="menuButton">Logout</button></Link>
+              <Link to="/Signout">
+              <Button >
+                Signout
+              </Button>
+              </Link>
             </nav>
           </header>
           <main className="mainContent">
@@ -72,9 +86,10 @@ const BookSearch = () => {
                 <div className="searchInput">
                   <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Enter search term" />
                   <select value={searchOption} onChange={(e) => setSearchOption(e.target.value)}>
-                    <option value="name">Name</option>
+                  
+                    <option value="bookName">Name</option>
                     <option value="author">Author</option>
-                    <option value="shelf">Shelf</option>
+                    <option value="shelfId">Shelf</option>
                   </select>
                   <button onClick={handleSearch} className="searchButton">Search</button>
                 </div>
@@ -84,9 +99,10 @@ const BookSearch = () => {
                   {searchResults.map((book) => (
                     <li key={book.id} className="searchResultItem">
                       <div className="bookInfo">
+                      <p className="bookName">ISBN: {book.ISBN}</p>
                         <h3 className="bookName">{book.bookName}</h3>
                         <p className="author">by {book.author}</p>
-                        <p className="shelf">Shelf: {book.shelf}</p>
+                        <p className="shelfId">Shelf: {book.Shelf}</p>
                         <button onClick={() => handleReservation(book)} className="reserveButton">Reserve Book</button>
                       </div>
                     </li>
@@ -101,6 +117,17 @@ const BookSearch = () => {
                 </div>
               )}
             </section>
+                {/* View Profile Modal */}
+                {isProfileModalOpen && (
+        <div className="popup">
+          <div className="popup-content">
+            <span className="close" onClick={toggleProfileModal}>
+              &times;
+            </span>
+            <ViewProfile />
+          </div>
+        </div>
+      )}
           </main>
         </div>
       </section>
@@ -286,6 +313,49 @@ const BookSearch = () => {
           .reservationResult.error {
             background-color: #ff7e7e;
             color: red;
+          }
+          .panel-button.view-profile-button {
+            position: absolute;
+            top: 20px; /* Adjust the distance from the top as needed */
+            right: 20px; /* Adjust the distance from the right as needed */
+            z-index: 999; /* Ensure it's above other content */
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #
+          }
+          .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+          }
+  
+          .popup-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+          }
+  
+          .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 2;
+          }
+          .panel-button.view-profile-button:hover {
+            background-color: #1a18b6;
           }
       `}</style>
     </>

@@ -2,28 +2,34 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import onlinelibrary from '../assets/onlineLibrary1.png';
-import profileIcon from '../assets/profileIcon.jpg';
+import { ToastContainer, toast } from 'react-toastify';
+import ViewProfile from './UserProfile'; // Import the ViewProfile component
+import Button from "./button";
 
 const BookController = ({ db }) => {
   const initialBookData = {
+    ISBN: '',
     bookName: '',
     alternateTitle: '',
     author: '',
-  
     publisher: '',
     bookCountAvailable: 0,
     bookStatus: '',
-    shelf: '',
+    shelfId: '',
   };
 
   const [bookData, setBookData] = useState(initialBookData);
-  const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const [showSearchPopup, setShowSearchPopup] = useState(false);
   
+  const [showSearchPopup, setShowSearchPopup] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
-  const userData =JSON.parse(localStorage.getItem('userData'));
+  const userData = JSON.parse(localStorage.getItem('userData'));
   const username = userData.username;
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const toggleProfileModal = () => {
+    setIsProfileModalOpen(!isProfileModalOpen);
+  };
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -32,7 +38,7 @@ const BookController = ({ db }) => {
 
   const addBook = async () => {
     // Check if any required fields are empty
-    const requiredFields = ['bookName', 'author',  'publisher', 'bookCountAvailable', 'bookStatus', 'shelf'];
+    const requiredFields = ['ISBN', 'bookName', 'author', 'publisher', 'bookCountAvailable', 'bookStatus', 'shelfId'];
     const emptyFields = requiredFields.filter(field => !bookData[field]);
   
     if (emptyFields.length > 0) {
@@ -42,7 +48,8 @@ const BookController = ({ db }) => {
     }
   
     try {
-      const response = await axios.post('http://localhost:5002/addbook', bookData);
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      const response = await axios.post('http://localhost:5002/addbook', { ...bookData, username: userData.username });
       console.log(response.data);
       setSuccessMessage('Book added successfully.');
       setShowSearchPopup(true);
@@ -54,20 +61,9 @@ const BookController = ({ db }) => {
       setShowSearchPopup(true);
     }
   };
+  
 
-  const handleProfileClick = async () => {
-    try {
-      const response = await axios.get('http://localhost:5002/profile');
-     
-      setShowProfilePopup(true);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    }
-  };
 
-  const closeProfilePopup = () => {
-    setShowProfilePopup(false);
-  };
 
   const closePopup = () => {
     setShowSearchPopup(false);
@@ -80,7 +76,9 @@ const BookController = ({ db }) => {
       <div className="titleAndProfile">
         <h1 className="title">Library Management System</h1>
         <div className="profileIcon">
-          <img src={profileIcon} alt="Profile Icon" onClick={handleProfileClick} />
+        <button className="panel-button view-profile-button" onClick={toggleProfileModal}>
+        View Profile
+      </button>
         </div>
       </div>
 
@@ -89,6 +87,9 @@ const BookController = ({ db }) => {
         <div className="wrapper">
           <header className="header">
             <nav className="navigationContainer">
+            <Link to="/add-shelfs">
+                <button className="menuButton">Add Shelfs</button>
+              </Link>
               <button className="menuButton">Add Books</button>
               <Link to="/book-searchs">
                 <button className="menuButton">Books Search</button>
@@ -96,11 +97,16 @@ const BookController = ({ db }) => {
               <Link to="/RegistrationStaff">
                 <button className="menuButton">Register User</button>
               </Link>
-              <Link to="/view-reservation">
+              <Link to="/view-reservations">
                 <button className="menuButton">View Reservation</button>
               </Link>
+              <Link to="/user-detail">
+                <button className="menuButton">User Detail</button>
+              </Link>
               <Link to="/Signout">
-                <button className="menuButton">Logout</button>
+              <Button >
+                Signout
+              </Button>
               </Link>
             </nav>
           </header>
@@ -108,6 +114,19 @@ const BookController = ({ db }) => {
             <section className="searchSection">
               <h2>Add a Book</h2>
               <form onSubmit={(e) => e.preventDefault()} className="searchForm">
+              <label htmlFor="ISBN" className="visually-hidden">
+                  ISBN
+                </label>
+                <input
+                  type="text"
+                  id="ISBN"
+                  className="textInput"
+                  placeholder="ISBN"
+                  aria-label="ISBN"
+                  name="ISBN"
+                  value={bookData.ISBN}
+                  onChange={handleInputChange}
+                />
                 <label htmlFor="bookName" className="visually-hidden">
                   Book name
                 </label>
@@ -196,21 +215,21 @@ const BookController = ({ db }) => {
                   <option value="Unavailable">Unavailable</option>
                 </select>
 
-                <label htmlFor="shelf" className="visually-hidden">
-                  Shelf
+                <label htmlFor="shelfId" className="visually-hidden">
+                  ShelfId
                 </label>
                 <input
-                  type="text"
-                  id="shelf"
+                  type="number"
+                  id="shelfId"
                   className="textInput"
                   placeholder="Shelf"
                   aria-label="Shelf"
-                  name="shelf"
-                  value={bookData.shelf}
+                  name="shelfId"
+                  value={bookData.shelfId}
                   onChange={handleInputChange}
                 />
 
-                <button onClick={addBook} className="searchButton">
+<button onClick={addBook} className="searchButton">
                   Add Book
                 </button>
               </form>
@@ -218,24 +237,20 @@ const BookController = ({ db }) => {
           </main>
         </div>
       </section>
-      {showProfilePopup && (
+
+      {/* View Profile Modal */}
+      {isProfileModalOpen && (
         <div className="popup">
           <div className="popup-content">
-            <span className="close" onClick={closeProfilePopup}>
+            <span className="close" onClick={toggleProfileModal}>
               &times;
             </span>
-            <p>User Profile Content</p>
-            {userData && (
-              <>
-                <p>User ID: {userData.userId}</p>
-                <p>Username: {userData.username}</p>
-                <p>UserEmail: {userData.userEmail}</p>
-                <p>UserType: {userData.userType}</p>
-              </>
-            )}
+            <ViewProfile />
           </div>
         </div>
       )}
+
+      {/* Popup for success message or validation errors */}
       {showSearchPopup && (
         <div className="popup">
           <div className="popup-content">
@@ -247,6 +262,7 @@ const BookController = ({ db }) => {
           </div>
         </div>
       )}
+      <ToastContainer />
          <style jsx>{`
          
   
@@ -317,7 +333,7 @@ const BookController = ({ db }) => {
 
         .searchSection {
           background-color: rgba(255, 255, 255, 0.8);
-          padding: 20px;
+          padding: 50px;
           border-radius: 10px;
           margin-top: 50px;
         }
@@ -392,6 +408,18 @@ const BookController = ({ db }) => {
            clip: rect(0 0 0 0);
            overflow: hidden;
        }
+       .panel-button.view-profile-button {
+        position: absolute;
+        top: 20px; /* Adjust the distance from the top as needed */
+        right: 20px; /* Adjust the distance from the right as needed */
+        z-index: 999; /* Ensure it's above other content */
+        padding: 10px 20px;
+        border-radius: 5px;
+        background-color: #
+      }
+      .panel-button.view-profile-button:hover {
+        background-color: #1a18b6;
+      }
      `}</style>
    </>
     

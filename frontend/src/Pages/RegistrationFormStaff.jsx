@@ -5,6 +5,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import onlinelibrary from "../assets/onlineLibrary1.png";
 import profileIcon from "../assets/profileIcon.jpg";
 import rectangle3 from "../assets/rectangle3.jpeg";
+import axios from 'axios';
+import ViewProfile from './UserProfile'; // Import the ViewProfile component
+import Button from "./button";
 
 function RegistrationFormStaff() {
   const [formData, setFormData] = useState({
@@ -17,6 +20,11 @@ function RegistrationFormStaff() {
   }); 
   const userData =JSON.parse(localStorage.getItem('userData'));
   const username = userData.username;
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const toggleProfileModal = () => {
+    setIsProfileModalOpen(!isProfileModalOpen);
+  };
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -72,23 +80,39 @@ function RegistrationFormStaff() {
       toast.error('Internal Server Error. Please try again later.');
     }
   };
-  
+
+
+
   return (
     <>
       <div className="titleAndProfile">
         <h1 className="title">Library Management System</h1>
         <div className="profileIcon">
-          <img src={profileIcon} alt="Profile Icon" />
+        <button className="panel-button view-profile-button" onClick={toggleProfileModal}>
+        View Profile
+      </button>
         </div>
       </div>
 
       <img src={onlinelibrary} alt="" className="backgroundImage" />
       <nav className="navigationContainer">
+      <Link to="/add-shelfs">
+                <button className="menuButton">Add Shelfs</button>
+              </Link>
       <Link to="/add-books"><button className="menuButton">Add Books</button></Link>
               <Link to="/book-searchs"><button className="menuButton">Book Search</button></Link>
               <Link to="/RegistrationStaff"><button className="menuButton">Register User</button></Link>
               <Link to="/view-reservations"><button className="menuButton">View Reservation</button></Link>
-              <Link to="/Signout"><button className="menuButton">Logout</button></Link>
+              <Link to="/user-detail">
+              <Link to="/user-detail">
+                <button className="menuButton">User Detail</button>
+              </Link>
+              </Link>
+              <Link to="/Signout">
+              <Button >
+                Signout
+              </Button>
+              </Link>
       </nav>
       <section className="form-section">
         <article className="form-container">
@@ -175,6 +199,17 @@ function RegistrationFormStaff() {
           </form>
         </article>
       </section>
+            {/* View Profile Modal */}
+            {isProfileModalOpen && (
+        <div className="popup">
+          <div className="popup-content">
+            <span className="close" onClick={toggleProfileModal}>
+              &times;
+            </span>
+            <ViewProfile />
+          </div>
+        </div>
+      )}
       <ToastContainer />
       
       <style jsx>{`
@@ -342,6 +377,49 @@ function RegistrationFormStaff() {
           .form-submit {
             font-size: 16px;
           }
+        }
+        .panel-button.view-profile-button {
+          position: absolute;
+          top: 20px; /* Adjust the distance from the top as needed */
+          right: 20px; /* Adjust the distance from the right as needed */
+          z-index: 999; /* Ensure it's above other content */
+          padding: 10px 20px;
+          border-radius: 5px;
+          background-color: #
+        }
+        .popup {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1;
+        }
+
+        .popup-content {
+          background: #fff;
+          padding: 20px;
+          border-radius: 8px;
+          max-width: 400px;
+          width: 100%;
+          position: relative;
+          z-index: 2;
+        }
+
+        .close {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          font-size: 20px;
+          cursor: pointer;
+          z-index: 2;
+        }
+        .panel-button.view-profile-button:hover {
+          background-color: #1a18b6;
         }
       `}</style>
     </>

@@ -1,20 +1,30 @@
-import React from 'react';
-import { Link } from "react-router-dom";
-import onlinelibrary from "../assets/onlineLibrary1.png";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import onlinelibrary from '../assets/onlineLibrary1.png';
+import ViewProfile from './UserProfile'; // Import the ViewProfile component
+import Button from "./button";
 
 function MemberDashboard() {
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  const toggleProfileModal = () => {
+    setIsProfileModalOpen(!isProfileModalOpen);
+  };
+
   const panelItems = [
-    { key: 1, label: "Book Search", altText: "Add books to library", route: "/book-search" },
-    { key: 2, label: "View Data Info", altText: "Search for books", route: "/View-Data-Info" },
-    { key: 3, label: "Return Book", altText: "Update books information", route: "/Return-book" },
+    { key: 1, label: 'Book Search', altText: 'Search for books', route: '/book-search' },
+    { key: 2, label: 'View Data Info', altText: 'View data information', route: '/View-Data-Info' },
+    { key: 3, label: 'Return Book', altText: 'Return a book', route: '/Return-book' },
     
-    
-  ]; const userData =JSON.parse(localStorage.getItem('userData'));
-  const username = userData.username;
-  
+  ];
 
   return (
     <>
+      {/* Profile Button */}
+      <button className="panel-button view-profile-button" onClick={toggleProfileModal}>
+        View Profile
+      </button>
+
       <header className="main-container">
         <div className="background-overlay">
           <div className="title-container">
@@ -27,21 +37,29 @@ function MemberDashboard() {
           {panelItems.slice(0, 4).map((item) => (
             <div key={item.key} className="button-container">
               <Link to={item.route}>
-                <button className="panel-button">
-                  {item.label}
-                </button>
+                <button className="panel-button">{item.label}</button>
               </Link>
+             
             </div>
           ))}
         </div>
         <div className="signout-container">
-          <Link to="/Signout">
-            <button className="panel-button signout-button">
-              Signout
-            </button>
-          </Link>
+           <Link to="/Signout">
+              <Button >
+                Signout
+              </Button>
+              </Link>
         </div>
       </main>
+      {/* Profile Modal */}
+      {isProfileModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={toggleProfileModal}>&times;</span>
+            <ViewProfile />
+          </div>
+        </div>
+      )}
       <style jsx>{`
         .main-container {
           position: relative;
@@ -136,6 +154,49 @@ function MemberDashboard() {
           .background-overlay {
             background-size: cover;
           }
+        }
+        .modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1;
+        }
+        
+        .modal-content {
+          background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+
+        }
+        
+        .close {
+          cursor: pointer;
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          font-size: 24px;
+        }
+        .panel-button.view-profile-button {
+          position: absolute;
+          top: 20px; /* Adjust the distance from the top as needed */
+          right: 20px; /* Adjust the distance from the right as needed */
+          z-index: 999; /* Ensure it's above other content */
+          padding: 10px 20px;
+          border-radius: 5px;
+          background-color: #
+        }
+        .panel-button.view-profile-button:hover {
+          background-color: #1a18b6;
         }
       `}</style>
     </>
