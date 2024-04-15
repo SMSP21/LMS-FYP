@@ -70,21 +70,7 @@ function RegistrationForm() {
       toast.error('Internal Server Error. Please try again later.');
     }
   };
-  const sendEmail = async (userEmail) => {
-    try {
-      // Make API call to your backend to send email using Nodemailer or another email service
-      const emailResponse = await axios.post('http://localhost:5002/sendemail', { userEmail });
-  
-      // Check if email sending was successful
-      if (emailResponse.status === 200) {
-        console.log('Email sent successfully!');
-      } else {
-        console.error('Email sending failed');
-      }
-    } catch (error) {
-      console.error('Error sending email:', error);
-    }
-  };
+ 
   return (
     <>
       <main>

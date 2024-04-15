@@ -42,7 +42,7 @@ const BookSearch = () => {
     try {
       const response = await axios.post('http://localhost:5002/reservebook', {
        
-        memberName: username, // Replace 'YourMemberName' with actual member name
+        memberName: username, 
         ISBN: book.ISBN,
         bookName: book.bookName,
         authorName: book.author
@@ -156,7 +156,7 @@ const BookSearch = () => {
             height: 100vh;
             object-fit: cover;
             object-position: center;
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             z-index: -1;

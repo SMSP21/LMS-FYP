@@ -9,7 +9,7 @@ import StaffDashboard from './Pages/StaffDashboard';
 import MemberDashboard from './Pages/MemberDashboard';
 import BookSearch from './Pages/BookSearch';
 import MemberLogin from './Pages/MemberLogin';
-import Payement from './Pages/Payement';
+
 import BookController from './Pages/Addbooks.jsx';
 import BookSearchS from './Pages/BookSearchStaff.jsx';
 import ViewReservation from './Pages/ViewReservation';
@@ -22,6 +22,7 @@ import CancelPage from './Pages/cancel.jsx';
 import UserProfile from './Pages/UserProfile.jsx';
 import ShelfController from './Pages/AddShelfs.jsx';
 import UserDetail from './Pages/UserDetail.jsx';
+import ChangePassword from './Pages/ChangePassword.jsx';
 const stripePromise = loadStripe('pk_test_51P25nf2KndXIGYlta6GiqoG83lgOkfW7QO8KBbtoHnDEDhk2U6J5pgNxhHd5qt9f4EgkQVw6HoFaI2tC9vDzbyCJ00jvTvHSsV');
 
 function App() {
@@ -48,16 +49,9 @@ function App() {
             <Route path="/view-profile" element={<UserProfile />} />
             <Route path="/add-shelfs" element={<ShelfController />} />
             <Route path="/user-detail" element={<UserDetail />} />
-            <Route
-              path="/Payement"
-              element={
-                <Elements stripe={stripePromise}>
-                  <Payement />
-                </Elements>
-              }
-            />
-            <Route exact path="/success" element={<SuccessPage />} />
-            <Route exact path="/cancel" element={<CancelPage />} />
+            <Route path="/change-password" element={<ChangePassword />} />
+            
+            
           </Routes>
         </UserProvider>
       </BrowserRouter>

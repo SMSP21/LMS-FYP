@@ -12,14 +12,21 @@ import Button from "./button";
 // BookDetails Component
 function BookDetails({ bookId, onDelete }) {
   const handleDeleteBook = async () => {
-    try {
-      await axios.delete(`http://localhost:5002/books/${bookId}`);
-      toast.success('Book deleted successfully!');
-      onDelete(bookId); // Notify the parent component about the deletion
-    } catch (error) {
-      toast.error('Book has been Reserved by a User');
+    // Display a confirmation dialog before deleting the book
+    const confirmDelete = window.confirm('Are you sure you want to delete this book?');
+  
+    // Check if the user clicked "OK"
+    if (confirmDelete) {
+      try {
+        await axios.delete(`http://localhost:5002/books/${bookId}`);
+        toast.success('Book deleted successfully!');
+        onDelete(bookId); // Notify the parent component about the deletion
+      } catch (error) {
+        toast.error('Book has been Reserved by a User');
+      }
     }
   };
+  
 
   return (
     <div>
@@ -62,16 +69,25 @@ function BookUpdate({ bookId, onUpdate, initialBook }) {
   };
 
   const handleUpdateBook = async () => {
-    try {
-      await axios.put(`http://localhost:5002/books/${bookId}`, updatedBook);
-      toast.success('Book updated successfully!');
-      onUpdate(bookId, updatedBook); // Notify the parent component about the update
-      setIsEditing(false); // Exit edit mode
-      setShowBookDetails(true); // Show book details after updating
-    } catch (error) {
-      toast.error('Error updating book');
+    const confirmation = window.confirm('Are you sure you want to update this book?');
+    if (confirmation) {
+      try {
+        await axios.put(`http://localhost:5002/books/${bookId}`, updatedBook);
+        toast.success('Book updated successfully!');
+        onUpdate(bookId, updatedBook); // Notify the parent component about the update
+        setIsEditing(false); // Exit edit mode
+        setShowBookDetails(true); // Show book details after updating
+        window.alert('Book updated successfully!');
+      } catch (error) {
+        toast.error('Error updating book');
+        window.alert('Error updating book');
+      }
+    } else {
+      window.alert('Update cancelled');
     }
   };
+  
+  
 
   return (
     <td>
@@ -382,7 +398,7 @@ const handleHideDetails = () => {
             height: 100vh;
             object-fit: cover;
             object-position: center;
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             z-index: -1;

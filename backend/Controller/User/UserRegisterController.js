@@ -48,7 +48,7 @@ const UserRegisterController = (app, db) => {
           service: 'Gmail', // Use your email service provider here
           auth: {
             user: 'supratikmspradhan@gmail.com', // Your email address
-            pass: 'mxky vnxi iqkn zdds', // Your email password or app password
+            pass: 'iugz owfb glta dvfe', // Your email password or app password
           },
         });
   
@@ -57,7 +57,9 @@ const UserRegisterController = (app, db) => {
           from: 'supratikmspradhan@gmail.com', // Sender address
           to: userEmail, // Recipient address
           subject: 'Welcome to Library Management System', // Subject line
-          text: `Thank You !! ${userFullName}  for Registering as a Member in Library Management System!!`, // Plain text body
+          text: `Dear ${userFullName} !
+          
+          Thank You !! for Registering in Library Management System!!`, // Plain text body
         };
   
         // Send email

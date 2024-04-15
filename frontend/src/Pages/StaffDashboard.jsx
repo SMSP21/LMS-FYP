@@ -43,7 +43,7 @@ function StaffDashboard() {
       </header>
       <main className="content-area">
         <div className="buttons-container">
-          {panelItems.slice(0, 5).map((item) => (
+          {panelItems.slice(0, 6).map((item) => (
             <div key={item.key} className="button-container">
               {item.route ? (
                 <Link to={item.route}>
@@ -172,31 +172,34 @@ function StaffDashboard() {
         }
         .modal {
           position: fixed;
-          top: 50%; /* Adjust this value as needed */
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background-color: rgba(0, 0, 0, 0.5);
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
           display: flex;
           justify-content: center;
           align-items: center;
-          z-index: 9999; /* Ensure it's above other content */
+          z-index: 1;
         }
         
         .modal-content {
-          background-color: #fefefe;
-          border-radius: 10px;
+          background: #fff;
           padding: 20px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-          max-width: 600px;
-          width: 80%;
+          border-radius: 8px;
+          max-width: 400px;
+          width: 100%;
+          position: relative;
+          z-index: 2;
         }
         
         .close {
-          cursor: pointer;
           position: absolute;
           top: 10px;
           right: 10px;
-          font-size: 24px;
+          font-size: 20px;
+          cursor: pointer;
+          z-index: 2;
         }
         .panel-button.view-profile-button {
           position: absolute;

@@ -66,7 +66,7 @@ const BookController = (app, db) => {
   try {
     // Query the database to get the total count of reservations
     
-    const [result] = await db.query('SELECT COUNT(*) AS total FROM user_details');
+    const [result] = await db.query('SELECT COUNT(*) AS total FROM user_details where userType = "member"');
     const totalUsers = result[0].total;
     return res.json({ success: true, totalUsers});
   } catch (error) {
@@ -79,7 +79,7 @@ app.get('/userget', async (req, res) => {
     
     // Query the database to get the total count of reservations
     
-    const [result] = await db.query('SELECT * from user_details');
+    const [result] = await db.query('SELECT * from user_details where userType = "member"');
     
     res.status(200).json({ result });
   } catch (error) {

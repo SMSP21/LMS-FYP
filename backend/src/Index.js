@@ -11,8 +11,8 @@ const ReturnController = require('../Controller/User/returnBook');
 const IssueController = require('../Controller/User/issueBook');
 const UserProfile = require('../Controller/User/userProfile')
 const ShelfController = require('../Controller/User/shelf');
-const OrderController = require('../Controller/User/OrderController');
-const KhaltiController = require('../Controller/User/KhaltiController');
+const FineController = require('../Controller/User/FineController');
+
 const PayNowController = require('../Controller/User/PayNowcontroller');
 
 const app = express();
@@ -53,8 +53,7 @@ bookSearch(app, db);
 ReturnController(app, db);
 IssueController(app, db);
 UserProfile (app,db);
-OrderController(app, db);
-KhaltiController(app, db);
+FineController(app,db);
 PayNowController(app, db);
 app.use('/',UserLoginController (db)); 
 

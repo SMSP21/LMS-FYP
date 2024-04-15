@@ -85,15 +85,25 @@ const UserDetail = () => {
 
   const deleteUser = async (id) => {
     try {
-      await axios.delete(`http://localhost:5002/deleteUser/${id}`);
-      toast.success('User deleted successfully');
-      fetchUserDetails(); // Refresh the list of reserved books after deletion
-      userCount(); // Refresh the reservation count after deletion
+      // Show confirmation dialog
+      const confirmDelete = window.confirm('Are you sure you want to delete this user?');
+  
+      if (confirmDelete) {
+        // User clicked "Yes", proceed with deletion
+        await axios.delete(`http://localhost:5002/deleteUser/${id}`);
+        toast.success('User deleted successfully');
+        fetchUserDetails(); // Refresh the list of users after deletion
+        userCount(); // Refresh the user count after deletion
+      } else {
+        // User clicked "No", do nothing
+        console.log('User deletion canceled');
+      }
     } catch (error) {
-      toast.error('User has Book Reserved or has Fine to be Payed');
-      console.error('User has Book Reserved or has Fine to be Payed:', error);
+      toast.error('Error deleting user');
+      console.error('Error deleting user:', error);
     }
   };
+  
 
   return (
     <>
@@ -246,7 +256,7 @@ const UserDetail = () => {
           height: 100vh;
           object-fit: cover;
           object-position: center;
-          position: absolute;
+          position: fixed;
           top: 0;
           left: 0;
           z-index: -1;

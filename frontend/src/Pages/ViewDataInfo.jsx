@@ -45,14 +45,16 @@ const ViewDataInfo = () => {
     }
   };
   const khaltiCall = (data) => {
+    console.log(data)
     window.location.href = data.payment_url;
   };
   
   const handlePayment = async () => {
+
     const url = "http://localhost:5002/api/epayment/initiate/";
     const data = {
-      id: 1,
-      products:  {product: "test", amount: totalPrice, quantity: 1 },
+      id: reservedBooks,
+      products:  {product: "test", amount: totalPrice}, UserDetail: username
       
     };
 
@@ -69,7 +71,7 @@ const ViewDataInfo = () => {
       // Check if the request was successful (status code 2xx)
       if (response.ok) {
         const responseData = await response.json();
-        console.log(responseData);
+        console.log(responseData.data.payment_url);
   
       
           khaltiCall(responseData.data);
@@ -84,14 +86,26 @@ const ViewDataInfo = () => {
 
   const handleCancelReservation = async (id) => {
     try {
-      await axios.delete(`http://localhost:5002/cancelReservation/${id}`);
-      toast.success('Reservation canceled successfully');
-      fetchReservedBooks(); // Refresh the list of reserved books after cancellation
+      // Show confirmation dialog
+      const confirmCancel = window.confirm('Are you sure you want to cancel this reservation?');
+  
+      if (confirmCancel) {
+        // User clicked "Yes", proceed with cancellation
+        await axios.delete(`http://localhost:5002/cancelReservation/${id}`);
+        toast.success('Reservation canceled successfully');
+        fetchReservedBooks(); // Refresh the list of reserved books after cancellation
+        calculateTotalPrice();
+      } else {
+        // User clicked "No", do nothing
+        console.log('Reservation cancellation canceled');
+      }
     } catch (error) {
       toast.error('Error canceling reservation');
       console.error('Error canceling reservation:', error);
+      window.alert('Error canceling reservation'); // Show alert message
     }
   };
+  
 
   const calculateTotalPrice = async () => {
     try {
@@ -109,16 +123,7 @@ const ViewDataInfo = () => {
   };
   
 
-  const handlePayNowTotal = async (totalPrice) => {
-    try {
-      // Call the backend API to process payment for the total price
-      await axios.post('http://localhost:5002/payNowTotal', { totalPrice });
-      toast.success('Total price paid successfully');
-    } catch (error) {
-      toast.error('Error processing payment');
-      console.error('Error processing payment:', error);
-    }
-  };
+  
 
 
   return (
@@ -175,9 +180,7 @@ const ViewDataInfo = () => {
                           <td>100</td>
                           <td>{new Date(book.ReservedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
                           <td>
-                            {!book.isPaid && (
-                              <button className="payNowButton" >Pay Now</button>
-                            )}
+                           
                             <button className="cancelButton" onClick={() => handleCancelReservation(book.brid)}>Cancel</button>
                           </td>
                         </tr>
@@ -195,10 +198,10 @@ const ViewDataInfo = () => {
                     <td >{totalPrice}</td>
                     <td > 
                     <button
-                      style={{ background: "#55aa33", margin: 10 }}
+                      style={{ background: "#55aa33", margin: 20 }}
                       onClick={() => handlePayment()}
                     >
-                      Handle Khalti Payment
+                      Pay Now
                     </button>
                     </td>
                   </tr>

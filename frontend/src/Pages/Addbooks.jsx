@@ -286,9 +286,9 @@ const BookController = ({ db }) => {
         .backgroundImage {
           width: 100vw;
           height: 100vh;
-          object-fit: cover;
+          object-fit: cover; /* Ensure the image covers the entire container */
           object-position: center;
-          position: absolute;
+          position: fixed; /* Change position to fixed */
           top: 0;
           left: 0;
           z-index: -1;

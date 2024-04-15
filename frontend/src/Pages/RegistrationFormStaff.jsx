@@ -50,7 +50,7 @@ function RegistrationFormStaff() {
       toast.error('All fields are required');
       return;
     }
-
+  
     if (formData.userPassword !== formData.userConfirmPassword) {
       // If passwords do not match, show an error message
       toast.error('Passwords do not match');
@@ -73,13 +73,14 @@ function RegistrationFormStaff() {
         toast.success('Registration successful!');
       } else {
         // Registration failed, show error message
-        toast.error('Registration failed. Please try again.');
+        toast.error('Registration failed. User Name already exists.');
       }
     } catch (error) {
       console.error('Error during registration:', error);
       toast.error('Internal Server Error. Please try again later.');
     }
   };
+  
 
 
 

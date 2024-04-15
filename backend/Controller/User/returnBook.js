@@ -1,12 +1,20 @@
 const ReturnController = (app, db) => {
   // Endpoint to return a book
   app.post('/returnbook', async (req, res) => {
+    
     try {
       const connection = await db.getConnection();
       await connection.beginTransaction();
 
       const { reserveId } = req.body;
+      const [book] = await db.query(  "SELECT bookId from book_reservations where id = ?", [reserveId]);
+    
+      const bookId = book[0].bookId;
+     
+      const [bookAvailability] = await db.query(  "SELECT bookCountAvailable from books where id = ?", [bookId]);
 
+      // Check if the book is already reserved
+      const bookQuantity = bookAvailability[0].bookCountAvailable
       // Retrieve the reservation date from the database
       const [result] = await connection.query(
         "SELECT createdAt FROM book_reservations WHERE id = ?",
@@ -21,8 +29,10 @@ const ReturnController = (app, db) => {
       // Calculate the number of days overdue
       const daysOverdue = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
 
+
       // Calculate the fine (15 rupees per day overdue)
       const fine = daysOverdue > 7 ? (daysOverdue - 7) * 10 : 0;
+
 
       // If the fine is greater than zero, apply it and update the database
       if (fine > 0) {
@@ -31,7 +41,9 @@ const ReturnController = (app, db) => {
           success: false,
           message: "Fine needed to be paid",
           fine: fine,
-          daysOverdue: daysOverdue // Include days overdue in the response
+          daysOverdue: daysOverdue, // Include days overdue in the response
+          reserveId: reserveId
+        
         });
       } else {
         // If the book is returned within one week, mark it as returned without any fine
@@ -73,6 +85,7 @@ const ReturnController = (app, db) => {
           message: "Book returned successfully",
           fine: 0,
           daysOverdue: daysOverdue // Include days overdue in the response
+
         });
       }
     } catch (error) {
@@ -86,7 +99,7 @@ const ReturnController = (app, db) => {
      
       const { memberName } = req.query; // Access query parameters using req.query
     
-      const [result] = await db.query("SELECT br.id as brid , bookName, author, b.id as id, userUserName,  s.shelfName as shelf FROM book_reservations br JOIN books b ON br.bookId = b.id JOIN user_details m ON br.memberId = m.user_id join shelf s on s.shelfId = b.shelfId WHERE userUserName = ? AND br.status = 'Issued'", [memberName]);
+      const [result] = await db.query("SELECT br.id as brid , bookName, author, b.id as id, userUserName,br.createdAt as ReservedAt,  s.shelfName as shelf FROM book_reservations br JOIN books b ON br.bookId = b.id JOIN user_details m ON br.memberId = m.user_id join shelf s on s.shelfId = b.shelfId WHERE userUserName = ? AND br.status = 'Issued'", [memberName]);
       
       res.status(200).json({ result });
     } catch (error) {

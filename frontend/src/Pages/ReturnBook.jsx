@@ -13,6 +13,8 @@ const ReturnBook = () => {
   const [reservedBooks, setReservedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showFinePopup, setShowFinePopup] = useState(false);
+  const [bookName, setbookName] = useState(0);
+  const [reserveId, setreserveId] = useState(0);
   const [fineAmount, setFineAmount] = useState(0);
   const [daysOverdue, setDueDays] = useState(0); // State to store due days
   const [showFineErrorMessage, setShowFineErrorMessage] = useState(false); // State to show fine error message
@@ -27,6 +29,8 @@ const ReturnBook = () => {
   useEffect(() => {
     fetchReservedBooks();
   }, []);
+
+
 
   // useEffect hook to handle clicks outside the finePopup element
 useEffect(() => {
@@ -64,7 +68,7 @@ useEffect(() => {
     }
   };
 
-  const handlereturnNow = async (reservationId, daysOverdue) => { // Passing daysOverdue parameter
+  const handlereturnNow = async (reservationId, daysOverdue, bookName) => { // Passing daysOverdue parameter
     try {
       const response = await axios.post('http://localhost:5002/returnbook', {
         reserveId: reservationId
@@ -78,8 +82,10 @@ useEffect(() => {
         if (responseData.fine) {
           setFineAmount(responseData.fine);
           setDueDays(responseData.daysOverdue); // Set due days in the state
+          setreserveId(responseData.reserveId);
+          setbookName(bookName)
           setShowFinePopup(true);
-          console.log(daysOverdue)
+          console.log(responseData.reserveId)
           
         } else {
           // Show error message if fine is required but not provided
@@ -91,17 +97,51 @@ useEffect(() => {
       console.error('Error returning book:', error);
     }
   };
+  const khaltiCall = (data) => {
+    console.log(data)
+    window.location.href = data.payment_url;
+  };
+  const booksWithFine = reservedBooks.filter(book => book.fineAmount > 0);
+
+// Now booksWithFine contains an array of books that have fines associated with them
+// You can then use this array to display information about these books
+
   const handlePayFine = async () => {
+
+    const url = "http://localhost:5002/api/epayment/initiate1/";
+    const data = {
+      id: reserveId,
+      products:  {product: bookName, amount: fineAmount}, UserDetail: username
+      
+    };
+    
     try {
-      // Call the backend API to process the payment for the fine
-      await axios.post('http://localhost:5002/payFine', { fineAmount });
-      toast.success('Fine paid successfully');
-      setShowFinePopup(false);
+      console.log("hi")
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Add any other headers as needed
+        },
+        body: JSON.stringify(data),
+      });
+
+      // Check if the request was successful (status code 2xx)
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log(responseData.data.payment_url);
+  
+      
+          khaltiCall(responseData.data);
+        
+      } else {
+        console.error("Failed to fetch:", response.status, response.statusText);
+      }
     } catch (error) {
-      toast.error('Error processing payment');
-      console.error('Error processing payment:', error);
+      console.error("Error during fetch:", error);
     }
   };
+  
 
   return (
     <>
@@ -137,6 +177,8 @@ useEffect(() => {
                       <th>Book Name</th>
                       <th>Author</th>
                       <th>Shelf</th>
+                      <th>Issued At</th>
+                      <th>Valid Till</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -151,8 +193,11 @@ useEffect(() => {
                           <td>{book.bookName}</td>
                           <td>{book.author}</td>
                           <td>{book.shelf}</td>
+                          <td>{new Date(book.ReservedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                          
+                          <td>{new Date(new Date(book.ReservedAt).setDate(new Date(book.ReservedAt).getDate() + 7)).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
                           <td>
-                          <button className="returnButton" onClick={() => handlereturnNow(book.brid, book.daysOverdue)}>Return</button> {/* Pass due days */}
+                          <button className="returnButton" onClick={() => handlereturnNow(book.brid, book.daysOverdue, book.bookName)}>Return</button> {/* Pass due days */}
                           </td>
                         </tr>
                       ))

@@ -73,15 +73,25 @@ const ViewDataInfo = () => {
 
   const deleteReservation = async (id) => {
     try {
-      await axios.delete(`http://localhost:5002/deleteReservation/${id}`);
-      toast.success('Reservation deleted successfully');
-      fetchReservedBooks(); // Refresh the list of reserved books after deletion
-      reserveCount(); // Refresh the reservation count after deletion
+      // Show confirmation dialog
+      const confirmDelete = window.confirm('Are you sure you want to delete this reservation?');
+  
+      if (confirmDelete) {
+        // User clicked "Yes", proceed with deletion
+        await axios.delete(`http://localhost:5002/deleteReservation/${id}`);
+        toast.success('Reservation deleted successfully');
+        fetchReservedBooks(); // Refresh the list of reserved books after deletion
+        reserveCount(); // Refresh the reservation count after deletion
+      } else {
+        // User clicked "No", do nothing
+        console.log('Reservation deletion canceled');
+      }
     } catch (error) {
       toast.error('Error deleting reservation');
       console.error('Error deleting reservation:', error);
     }
   };
+  
 
   return (
     <>

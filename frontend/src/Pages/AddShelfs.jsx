@@ -116,6 +116,7 @@ const ShelfController = ({ db }) => {
       .then(result => {
         if (result.data.success) {
           setShelfTotal(result.data.totalShelf);
+          fetchShelf();
         } else {
           toast.error('Error fetching total Shelf');
         }
