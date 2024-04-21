@@ -80,7 +80,29 @@ const UserDetail = () => {
     }
   };
   
-  
+  const handleChangePassword = async (id) => {
+    try {
+      const newPassword = prompt("Enter the new password:");
+      if (newPassword === null || newPassword === "") {
+        return; // If user cancels or enters an empty string, do nothing
+      }
+
+      const response = await axios.post('http://localhost:5002/change-password1', {
+        userId: id,
+        newPassword: newPassword
+      });
+
+      if (response.data.success) {
+        toast.success('Password changed successfully');
+        fetchUserDetails(); // Refresh user details after password change
+      } else {
+        toast.error('Failed to change password');
+      }
+    } catch (error) {
+      toast.error('An error occurred while changing password');
+      console.error('Error changing password:', error);
+    }
+  };
   
 
   const deleteUser = async (id) => {
@@ -181,37 +203,40 @@ const UserDetail = () => {
                         <th>Full Name</th>
                         <th>Email</th>
                         <th>User Name</th>
-                       
+                        <th>Password</th>
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {searchResults.length > 0 ? (
-                        // Display search results if available
-                        searchResults.map((book) => (
-                          <tr key={book.user_id}>
-                          <td>{book.userFullName}</td>
-                            <td>{book.userEmail}</td>
-                            <td>{book.userUserName}</td>
-                            <td>
-                              <button className="deleteButton" onClick={() => deleteUser(book.user_id)}>Delete</button>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        // Display user details if no search results
-                        userDetail.map((book) => (
-                          <tr key={book.user_id}>
-                            <td>{book.userFullName}</td>
-                            <td>{book.userEmail}</td>
-                            <td>{book.userUserName}</td>
-                            
-                            <td>
-                              <button className="deleteButton" onClick={() => deleteUser(book.user_id)}>Delete</button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
+                    {searchResults.length > 0 ? (
+                      // Display search results if available
+                      searchResults.map((user) => (
+                        <tr key={user.user_id}>
+                          <td>{user.userFullName}</td>
+                          <td>{user.userEmail}</td>
+                          <td>{user.userUserName}</td>
+                          <td>{user.userPassword}</td>
+                          <td>
+                            <button className="deleteButton" onClick={() => deleteUser(user.user_id)}>Delete</button>
+                            <button className="changePasswordButton" onClick={() => handleChangePassword(user.user_id)}>Change Password</button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      // Display user details if no search results
+                      userDetail.map((user) => (
+                        <tr key={user.user_id}>
+                          <td>{user.userFullName}</td>
+                          <td>{user.userEmail}</td>
+                          <td>{user.userUserName}</td>
+                          <td>{user.userPassword}</td>
+                          <td>
+                            <button className="deleteButton" onClick={() => deleteUser(user.user_id)}>Delete</button>
+                            <button className="changePasswordButton" onClick={() => handleChangePassword(user.user_id)}>Change Password</button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                     </tbody>
                   </table>
                 </div>
@@ -260,7 +285,7 @@ const UserDetail = () => {
           top: 0;
           left: 0;
           z-index: -1;
-          opacity: 0.8;
+          opacity: 0.7;
         }
 
         .banner {
@@ -471,6 +496,19 @@ const UserDetail = () => {
         .searchButton:hover {
           background-color: #1a18b6;
         }
+        .changePasswordButton {
+          padding: 8px 16px;
+          background-color: #007bff; /* Blue color */
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+        
+        .changePasswordButton:hover {
+          background-color: #0056b3; /* Darker shade of blue on hover */
+        }
+        
       `}</style>
     </>
   );

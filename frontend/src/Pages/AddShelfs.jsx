@@ -73,11 +73,11 @@ const ShelfController = ({ db }) => {
       if (responseData.error) {
         // If the server returns an error message, display it
         setValidationErrors({ message: responseData.error });
-        setShowSearchPopup(true);
+        
       } else {
         // If the shelf is added successfully, reset form data and show success message
-        setSuccessMessage('Shelf added successfully.');
-        setShowSearchPopup(true);
+        toast.success('Shelf added successfully.');
+        
         setShelfData(initialShelfData);
         setValidationErrors({});
       }
@@ -329,7 +329,7 @@ const ShelfController = ({ db }) => {
           top: 0;
           left: 0;
           z-index: -1;
-          opacity: 0.8;
+          opacity: 0.7;
         }
         
 

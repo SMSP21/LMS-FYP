@@ -402,7 +402,7 @@ const handleHideDetails = () => {
             top: 0;
             left: 0;
             z-index: -1;
-            opacity: 0.8;
+            opacity: 0.7;
           }
 
           .banner {

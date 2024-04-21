@@ -52,7 +52,7 @@ function HomePage() {
           width: 100%;
           object-fit: cover;
           height: 100%;
-          opacity: 0.8; /* Adjust opacity as needed */
+          opacity: 0.7; /* Adjust opacity as needed */
           position: absolute;
           inset: 0;
         }

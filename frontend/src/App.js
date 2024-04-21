@@ -31,13 +31,13 @@ function App() {
       <BrowserRouter>
         <UserProvider>
           <Routes>
-            <Route index element={<HomePage />} />
+            <Route index element={<MemberLogin />} />
             <Route path="/staff" element={<Login />} />
             <Route path="/member" element={<MemberLogin />} />
             <Route path="/Registration" element={<Registration />} />
             <Route path="/login" element={<Login />} />
             <Route path="/staff-dashboard" element={<StaffDashboard />} />
-            <Route path="/Signout" element={<HomePage />} />
+            <Route path="/Signout" element={<MemberLogin />} />
             <Route path="/MemberDashboard" element={<MemberDashboard />} />
             <Route path="/book-search" element={<BookSearch />} />
             <Route path="/add-books" element={<BookController />} />

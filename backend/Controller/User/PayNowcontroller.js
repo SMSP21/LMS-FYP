@@ -72,8 +72,7 @@ const PayNowcontroller = (app, db) => {
 
         
   
-          // Send payment confirmation email
-         // Send payment confirmation email
+       
 // Send payment confirmation email
 const mailOptions = {
   from: "supratikmspradhan@gmail.com",

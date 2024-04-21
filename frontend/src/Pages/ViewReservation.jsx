@@ -36,6 +36,7 @@ const ViewDataInfo = () => {
         username,
       });
       setSearchResults(response.data);
+      setReservedBooks([])
       if (response.data.length === 0) {
         toast.info('No Reserved books found');
       }
@@ -43,7 +44,10 @@ const ViewDataInfo = () => {
       toast.error('Error searching for Reserved books');
       setSearchResults([]);
     }
+    fetchReservedBooks(); // Refresh the list of reserved books after search
+    reserveCount(); // Refresh the reservation count after search
   };
+  
 
   const fetchReservedBooks = async () => {
     try {
@@ -78,19 +82,30 @@ const ViewDataInfo = () => {
   
       if (confirmDelete) {
         // User clicked "Yes", proceed with deletion
-        await axios.delete(`http://localhost:5002/deleteReservation/${id}`);
-        toast.success('Reservation deleted successfully');
-        fetchReservedBooks(); // Refresh the list of reserved books after deletion
-        reserveCount(); // Refresh the reservation count after deletion
+        const response = await axios.delete(`http://localhost:5002/deleteReservation/${id}`);
+        
+        if (response.status === 200) {
+          toast.success('Reservation deleted successfully');
+          fetchReservedBooks(); // Refresh the list of reserved books after deletion
+          reserveCount(); // Refresh the reservation count after deletion
+        }
       } else {
         // User clicked "No", do nothing
         console.log('Reservation deletion canceled');
       }
     } catch (error) {
-      toast.error('Error deleting reservation');
-      console.error('Error deleting reservation:', error);
+      if (error.response && error.response.status === 400) {
+        // If reservation is already issued, display the error message
+        toast.error('Cannot delete reservation. Book is already issued.');
+      } else {
+        // For other errors, display a generic error message
+        toast.error('Error deleting reservation');
+        console.error('Error deleting reservation:', error);
+      }
     }
   };
+  
+  
   
 
   return (
@@ -130,13 +145,13 @@ const ViewDataInfo = () => {
               <div className='p-3 d-flex justify-content-around mt-3'>
                 <div className='px-3 pt-2 pb-3 border shadow-sm w-25'>
                   <div className='text-center pb-1'>
-                    <h4 className="reservationTitle">Reservations</h4>
+                    <h4 className="reservationTitle">Reserved or Issued</h4>
                   </div>
                   <div className=''>
                     <table className="totalReservationTable">
                       <tbody>
                         <tr>
-                          <td>Total Reservations</td>
+                          <td>Total Reserve or Issued</td>
                           <td className="reservationCount">{reserveTotal}</td>
                         </tr>
                       </tbody>
@@ -158,7 +173,7 @@ const ViewDataInfo = () => {
                   <button onClick={handleSearch} className="searchButton">Search</button>
                 </div>
               </div>
-              <h2 className="heading">Reserved Books</h2>
+              <h2 className="heading">Reserved or Issued Books</h2>
               {loading ? (
                 <p>Loading...</p>
               ) : (
@@ -171,6 +186,7 @@ const ViewDataInfo = () => {
                         <th>Author</th>
                         <th>Shelf</th>
                         <th>Member</th>
+                        <th>Status</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -178,12 +194,13 @@ const ViewDataInfo = () => {
                       {searchResults.length > 0 ? (
                         // Display search results if available
                         searchResults.map((book) => (
-                          <tr key={book.id}>
+                          <tr key={book.brid}>
                             <td>{book.ISBN}</td>
                             <td>{book.bookName}</td>
                             <td>{book.author}</td>
                             <td>{book.Shelf}</td>
                             <td>{book.userUserName}</td>
+                            <td>{book.status}</td>
                             <td>
                               <button className="deleteButton" onClick={() => deleteReservation(book.brid)}>Delete</button>
                             </td>
@@ -192,12 +209,13 @@ const ViewDataInfo = () => {
                       ) : (
                         // Display reserved books if no search results
                         reservedBooks.map((book) => (
-                          <tr key={book.id}>
+                          <tr key={book.brid}>
                             <td>{book.ISBN}</td>
                             <td>{book.bookName}</td>
                             <td>{book.author}</td>
                             <td>{book.Shelf}</td>
                             <td>{book.userUserName}</td>
+                            <td>{book.status}</td>
                             <td>
                               <button className="deleteButton" onClick={() => deleteReservation(book.brid)}>Delete</button>
                             </td>
@@ -248,11 +266,11 @@ const ViewDataInfo = () => {
           height: 100vh;
           object-fit: cover;
           object-position: center;
-          position: absolute;
+          position: fixed;
           top: 0;
           left: 0;
           z-index: -1;
-          opacity: 0.8;
+          opacity: 0.7;
         }
 
         .banner {

@@ -33,15 +33,7 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-const router = express.Router(); // Define the router object
 
-// Define routes using router
-router.get('/stripe_config', async (req, res) => {
-  // Your route logic here
-});
-
-// Mount the router at a specific route
-app.use('/api', router); // This will handle routes starting with /api
 
 // Use the correct function name UserRegisterController
 UserRegisterController(app, db);

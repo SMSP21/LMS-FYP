@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
 // Defining the UserRegisterController function that takes 'app' and 'db' as parameters
@@ -78,6 +79,9 @@ const UserRegisterController = (app, db) => {
         // Begin the transaction
         await connection.beginTransaction();
 
+        // Hash the entered password before storing it
+        const hashedPassword = await bcrypt.hash(userPassword, 10); // 10 is the salt rounds
+
         // Insert user details into the user_details table
         const [userDetailsResult] = await connection.query(
           'INSERT INTO user_details (userFullName, userEmail, userType, userUserName) VALUES (?, ?, ?, ?)',
@@ -93,10 +97,10 @@ const UserRegisterController = (app, db) => {
           throw new Error('Invalid user ID');
         }
 
-        // Insert user login details into the user_login table
+        // Insert user login details into the user_login table with hashed password
         await connection.query(
           'INSERT INTO user_login (user_id, userUserName, userPassword) VALUES (?, ?, ?)',
-          [userId, userUserName, userPassword]
+          [userId, userUserName, hashedPassword]
         );
 
         // Commit the transaction

@@ -236,11 +236,11 @@ function RegistrationFormStaff() {
           height: 100vh;
           object-fit: cover;
           object-position: center;
-          position: absolute;
+          position: fixed;
           top: 0;
           left: 0;
           z-index: -1;
-          opacity: 0.8;
+          opacity: 0.7;
         }
 
         .navigationContainer {

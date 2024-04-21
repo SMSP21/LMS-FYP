@@ -16,12 +16,15 @@ const ChangePasswordPage = () => {
         toast.error("New password and confirm password don't match");
         return;
       }
-
-      const response = await axios.post('http://localhost:5002/change-password', {
-        currentPassword,
-        newPassword,
-      });
-
+      const token = localStorage.getItem('token');
+     console.log(token)
+     const response = await axios.post('http://localhost:5002/change-password', {
+      currentPassword,
+      newPassword,
+    }, {
+      headers: { 'Authorization': `Bearer ${token}` }, // Move headers outside of data object
+    });
+  
       const { success, message } = response.data;
 
       if (success) {
@@ -30,6 +33,8 @@ const ChangePasswordPage = () => {
         setCurrentPassword('');
         setNewPassword('');
         setConfirmNewPassword('');
+        // Redirect to MemberLogin page
+        window.location.href = '/member';
       } else {
         toast.error(message);
       }
@@ -51,6 +56,7 @@ const ChangePasswordPage = () => {
             id="currentPasswordInput"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
+            className="input-field"
           />
         </div>
         <div className="form-group">
@@ -60,6 +66,7 @@ const ChangePasswordPage = () => {
             id="newPasswordInput"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
+            className="input-field"
           />
         </div>
         <div className="form-group">
@@ -69,9 +76,10 @@ const ChangePasswordPage = () => {
             id="confirmNewPasswordInput"
             value={confirmNewPassword}
             onChange={(e) => setConfirmNewPassword(e.target.value)}
+            className="input-field"
           />
         </div>
-        <button type="button" onClick={handleChangePassword}>
+        <button type="button" onClick={handleChangePassword} className="btn">
           Change Password
         </button>
       </form>
@@ -81,10 +89,9 @@ const ChangePasswordPage = () => {
           max-width: 400px;
           margin: 0 auto;
           padding: 20px;
-          border: 1px solid #ccc;
-          border-radius: 5px;
-          background-color: #fff;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          border-radius: 8px;
+          background-color: #f5f5f5;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         h2 {
@@ -98,19 +105,18 @@ const ChangePasswordPage = () => {
         }
 
         label {
-          display: block;
-          margin-bottom: 5px;
           font-weight: bold;
+          color: #333;
         }
 
-        input[type='password'] {
+        .input-field {
           width: 100%;
           padding: 10px;
           border: 1px solid #ccc;
           border-radius: 5px;
         }
 
-        button {
+        .btn {
           width: 100%;
           padding: 10px;
           background-color: #007bff;
@@ -120,23 +126,8 @@ const ChangePasswordPage = () => {
           cursor: pointer;
         }
 
-        button:hover {
+        .btn:hover {
           background-color: #0056b3;
-        }
-
-        .back-btn {
-          display: block;
-          margin-bottom: 20px;
-          padding: 10px;
-          background-color: #ccc;
-          color: #333;
-          text-align: center;
-          text-decoration: none;
-          border-radius: 5px;
-        }
-
-        .back-btn:hover {
-          background-color: #ddd;
         }
       `}</style>
     </div>

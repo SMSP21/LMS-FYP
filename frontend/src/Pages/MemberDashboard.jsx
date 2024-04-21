@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import onlinelibrary from '../assets/onlineLibrary1.png';
 import ViewProfile from './UserProfile'; // Import the ViewProfile component
+import { toast, ToastContainer } from 'react-toastify';
 import Button from "./button";
 
 function MemberDashboard() {
@@ -58,8 +59,11 @@ function MemberDashboard() {
             <span className="close" onClick={toggleProfileModal}>&times;</span>
             <ViewProfile />
           </div>
+         
         </div>
+        
       )}
+       <ToastContainer/>
       <style jsx>{`
         .main-container {
           position: relative;
@@ -77,7 +81,7 @@ function MemberDashboard() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          opacity: 0.8;
+          opacity: 0.7;
         }
 
         .title-container {

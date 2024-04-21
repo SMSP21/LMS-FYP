@@ -79,7 +79,7 @@ app.get('/userget', async (req, res) => {
     
     // Query the database to get the total count of reservations
     
-    const [result] = await db.query('SELECT * from user_details where userType = "member"');
+    const [result] = await db.query('SELECT * from user_details ud join user_login u on u.user_id = ud.user_id where userType = "member"');
     
     res.status(200).json({ result });
   } catch (error) {
@@ -90,6 +90,7 @@ app.get('/userget', async (req, res) => {
 
 app.delete('/deleteUser/:id', async (req, res) => {
   const user_id = req.params.id;
+  console.log(user_id)
   const connection = await db.getConnection();
   try {
 

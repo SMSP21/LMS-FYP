@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const authenticateToken = require('../auth');
 
@@ -60,27 +61,35 @@ app.put('/update-profile', (req, res) => {
   }
 });
 
+
 app.post('/change-password', async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const username = req.body.userUsername; // Assuming you're sending the username in the request body
 
   try {
     // Fetch user from database (assuming username is unique)
-    const userProfile = await db.query( 'SELECT * FROM user_details WHERE userUserName = ?', [username]);
-
+    const userProfile = `SELECT ul.user_id, ul.userPassword, ul.userUserName, ud.userType FROM user_login ul JOIN user_details ud ON ul.user_id = ud.user_id WHERE ul.userUserName = ?`;
+    const [results, fields] = await db.query(userProfile, [username]);
+ 
     // Check if user exists
-    if (userProfile.length === 0) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    // Check if current password matches
-    if (userProfile[0].userPassword !== currentPassword) {
+      // Handle the query results
+      if (!results || results.length === 0) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials: User not found' });
+      }
+      console.log(results)
+      const storedPasswordHash = results[0].userPassword;
+      const passwordMatch = await bcrypt.compare(currentPassword, storedPasswordHash);
+    console.log(userProfile)
+    if (!passwordMatch) {
       return res.status(401).json({ success: false, message: 'Current password is incorrect' });
     }
 
-    // Update user's password
-    await db.query( 'UPDATE user_details SET userPassword = ? WHERE userUserName = ?', [newPassword, username]);
+    // Hash the new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10); // You can adjust the salt rounds (10 is a reasonable default)
 
+    // Update user's password
+    await db.query('UPDATE user_login SET userPassword = ? WHERE userUserName = ?', [hashedNewPassword, username]);
+   
     res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {
     console.error('Error:', error);
@@ -89,6 +98,28 @@ app.post('/change-password', async (req, res) => {
 });
 
 
+app.post('/change-password1', async (req, res) => {
+  try {
+    const { userId, newPassword } = req.body;
+
+    // Basic validation
+    if (!userId || !newPassword) {
+      return res.status(400).json({ success: false, message: 'User ID and new password are required' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10); // You can adjust the salt rounds (10 is a reasonable default)
+
+    // Update user's password in the database with the hashed password
+    await db.query('UPDATE user_login SET userPassword = ? WHERE user_id = ?', [hashedPassword, userId]);
+
+    // Send success response
+    res.status(200).json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ success: false, message: 'An error occurred while changing password' });
+  }
+});
 
 };
 

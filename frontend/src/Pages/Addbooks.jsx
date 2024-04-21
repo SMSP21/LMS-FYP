@@ -51,8 +51,8 @@ const BookController = ({ db }) => {
       const userData = JSON.parse(localStorage.getItem('userData'));
       const response = await axios.post('http://localhost:5002/addbook', { ...bookData, username: userData.username });
       console.log(response.data);
-      setSuccessMessage('Book added successfully.');
-      setShowSearchPopup(true);
+      toast.success('Book added successfully.');
+      
       setBookData(initialBookData);
       setValidationErrors({});
     } catch (error) {
@@ -292,7 +292,7 @@ const BookController = ({ db }) => {
           top: 0;
           left: 0;
           z-index: -1;
-          opacity: 0.8; /* Added opacity */
+          opacity: 0.7; /* Added opacity */
         }
 
         .banner {

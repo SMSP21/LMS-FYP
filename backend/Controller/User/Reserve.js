@@ -131,7 +131,7 @@ if (bookName) {
       
       // Query the database to get the total count of reservations
       
-      const [result] = await db.query('SELECT br.id as brid ,ISBN,  bookName, author, b.id as id, userUserName, s.shelfName as Shelf from  book_reservations br join books b on br.bookId = b.id join user_details m on br.memberId = m.user_id join shelf s on s.shelfId = b.shelfId');
+      const [result] = await db.query('SELECT br.id as brid ,ISBN,  bookName, author, b.id as id, userUserName, s.shelfName as Shelf, br.status from  book_reservations br join books b on br.bookId = b.id join user_details m on br.memberId = m.user_id join shelf s on s.shelfId = b.shelfId');
       
       res.status(200).json({ result });
     } catch (error) {
@@ -157,49 +157,50 @@ if (bookName) {
     const id = req.params.id;
     const connection = await db.getConnection();
     try {
-
       // Find the reservation by ID
-      const [result] = await db.query("SELECT bookId from book_reservations WHERE id = ?", [id]);
-      const bookId = result[0].bookId;
-      
-      const [bookAvailability] = await db.query(  "SELECT bookCountAvailable from books where id = ?", [bookId]);
-      
-      // Check if the book is already reserved
-      const bookQuantity = bookAvailability[0].bookCountAvailable
-      await db.query("DELETE FROM book_reservations WHERE id = ?", [id]);
-     
+      const [reservationResult] = await db.query("SELECT bookId, status FROM book_reservations WHERE id = ?", [id]);
+      const bookId = reservationResult[0].bookId;
+      const reservationStatus = reservationResult[0].status.toLowerCase(); // Convert status to lowercase for case-insensitive comparison
 
+      // Check if the book is already reserved
+      if (reservationStatus === 'issued') {
+        // If the book is already issued, send an error response
+        return res.status(400).json({ success: false, message: 'Cannot delete reservation. Book is already issued.' });
+      }
+  
+      const [bookAvailability] = await db.query("SELECT bookCountAvailable FROM books WHERE id = ?", [bookId]);
+      const bookQuantity = bookAvailability[0].bookCountAvailable;
+  
+      await db.query("DELETE FROM book_reservations WHERE id = ?", [id]);
+  
       const newBookQuantity = bookQuantity + 1;
       if (newBookQuantity == 0) {
         const [result] = await connection.query(`
-        UPDATE books 
-        SET 
-        
-          bookCountAvailable = ?,
-          bookStatus = 'Available'
-          
-        WHERE id = ?
-      `, [newBookQuantity, bookId]);
-      }
-      else{
-      const [result] = await connection.query(`
-      UPDATE books 
-      SET 
-      
-        bookCountAvailable = ?
-        
-      WHERE id = ?
-    `, [newBookQuantity, bookId]);
+          UPDATE books 
+          SET 
+            bookCountAvailable = ?,
+            bookStatus = 'Available'
+          WHERE id = ?
+        `, [newBookQuantity, bookId]);
+      } else {
+        const [result] = await connection.query(`
+          UPDATE books 
+          SET 
+            bookCountAvailable = ?
+          WHERE id = ?
+        `, [newBookQuantity, bookId]);
       }
       // Return a success response
       return res.status(200).json({ success: true, message: 'Reservation deleted successfully' });
-
+  
     } catch (error) {
       // If an error occurs, return a 500 Internal Server Error response
       console.error('Error deleting reservation:', error);
       return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
-  });
+});
+
+  
 
   app.delete('/cancelReservation/:id', async (req, res) => {
     const id = req.params.id;
@@ -297,11 +298,11 @@ if (bookName) {
       let query;
     
       if (searchOption === 'name') {
-        query = "SELECT br.*,b.*, s.shelfName as Shelf,userUserName FROM BOOKS b join shelf s on s.shelfId = b.shelfId join book_reservations br on b.id = br.bookId join user_details m on br.memberId = m.user_id WHERE bookName LIKE ? AND br.status = 'reserved'";
+        query = "SELECT br.id as brid , status,b.*, s.shelfName as Shelf,userUserName FROM BOOKS b join shelf s on s.shelfId = b.shelfId join book_reservations br on b.id = br.bookId join user_details m on br.memberId = m.user_id WHERE bookName LIKE ? AND (br.status = 'reserved' OR br.status ='Issued')";
       } else if (searchOption === 'author') {
-        query = "SELECT br.*,b.*, s.shelfName as Shelf,userUserName FROM BOOKS b join shelf s on s.shelfId = b.shelfId join book_reservations br on b.id = br.bookId join user_details m on br.memberId = m.user_id WHERE author LIKE ? AND br.status = 'reserved'";
+        query = "SELECT br.id as brid ,status,b.*, s.shelfName as Shelf,userUserName FROM BOOKS b join shelf s on s.shelfId = b.shelfId join book_reservations br on b.id = br.bookId join user_details m on br.memberId = m.user_id WHERE author LIKE ? AND (br.status = 'reserved' OR br.status ='Issued')";
       } else if (searchOption === 'shelfId') {
-        query = "SELECT br.*,b.*, s.shelfName as Shelf,userUserName FROM BOOKS b join shelf s on s.shelfId = b.shelfId join book_reservations br on b.id = br.bookId join user_details m on br.memberId = m.user_id WHERE s.shelfName LIKE ? AND br.status = 'reserved' OR br.status ='Issued'";
+        query = "SELECT br.id as brid , status,b.*, s.shelfName as Shelf,userUserName FROM BOOKS b join shelf s on s.shelfId = b.shelfId join book_reservations br on b.id = br.bookId join user_details m on br.memberId = m.user_id WHERE s.shelfName LIKE ? AND (br.status = 'reserved' OR br.status ='Issued')";
       } else {
         return res.status(400).json({
           error: 'Invalid search option'

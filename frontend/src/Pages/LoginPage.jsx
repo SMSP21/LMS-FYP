@@ -27,17 +27,14 @@ const LoginPage = () => {
       if (success) {
         // Successful login
         console.log('Login successful');
-  
-       
-        
-        
         // Redirect users to their respective dashboards based on userType
         const { token, userData } = response.data;
 
 if (userData.userType === 'staff') {
   localStorage.setItem('token', token);
   localStorage.setItem('userData', JSON.stringify(userData)); // Stringify userData before saving to localStorage
-  toast('Login successful!', { type: 'success' });  
+  toast('Login successful!', { type: 'success' }); 
+  toast.success('Login sucessfully'); 
   login(userData.userType, username, userData);
   navigate('/staff-dashboard');
 }
@@ -46,6 +43,7 @@ if (userData.userType === 'staff') {
           // Handle unrecognized user type
           console.error('Unauthorized: User type not recognized');
           toast.error('Unauthorized: User type not recognized');
+        
         }
       } else {
         // Login failed
@@ -139,7 +137,7 @@ if (userData.userType === 'staff') {
           height: 100%;
           object-fit: cover;
           position: absolute;
-          opacity: 0.8;
+          opacity: 0.7;
         }
         .header-content {
           position: absolute;

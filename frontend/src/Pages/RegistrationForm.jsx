@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, redirect } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import onlinelibrary from "../assets/onlineLibrary1.png";
@@ -27,50 +27,52 @@ function RegistrationForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-     // Simple form validation
-  if (
-    !formData.userFullName ||
-    !formData.userEmail ||
-    !formData.userUserName ||
-    !formData.userPassword ||
-    !formData.userConfirmPassword ||
-    !formData.userType
-  ) {
-    // If any required field is missing, show an error message
-    toast.error('All fields are required');
-    return;
-  }
+    // Simple form validation
+    if (
+        !formData.userFullName ||
+        !formData.userEmail ||
+        !formData.userUserName ||
+        !formData.userPassword ||
+        !formData.userConfirmPassword ||
+        !formData.userType
+    ) {
+        // If any required field is missing, show an error message
+        toast.error('All fields are required');
+        return;
+    }
 
-  if (formData.userPassword !== formData.userConfirmPassword) {
-    // If passwords do not match, show an error message
-    toast.error('Passwords do not match');
-    return;
-  }
+    if (formData.userPassword !== formData.userConfirmPassword) {
+        // If passwords do not match, show an error message
+        toast.error('Passwords do not match');
+        return;
+    }
   
     try {
-      // Make API call to register user with formData
-      const response = await fetch('http://localhost:5002/register/user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+        // Make API call to register user with formData
+        const response = await fetch('http://localhost:5002/register/user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        });
   
-      // Check if registration was successful
-      if (response.ok) {
-        // Registration successful, show success message
-        toast.success('Registration successful!');
-      } else {
-        // Registration failed, show error message
-        toast.error('Registration failed. Please try again.');
-      }
+        // Check if registration was successful
+        if (response.ok) {
+            // Registration successful, show success message
+            toast.success('Registration successful!');
+            // Redirect to the member page
+            window.location.href = '/member';
+        } else {
+            // Registration failed, show error message
+            toast.error('Registration failed. Please try again.');
+        }
     } catch (error) {
-      console.error('Error during registration:', error);
-      toast.error('Internal Server Error. Please try again later.');
+        console.error('Error during registration:', error);
+        toast.error('Internal Server Error. Please try again later.');
     }
-  };
- 
+};
+
   return (
     <>
       <main>
@@ -185,14 +187,13 @@ function RegistrationForm() {
         }
 
         .header-image {
-          width: 100%;
-          height: 100vh;
-          object-fit: cover;
-          opacity: 0.8;
+          
+          opacity: 0.7;
+          
         }
 
         .header-overlay {
-          position: absolute;
+          position: fixed;
           top: 0;
           left: 0;
           width: 100%;

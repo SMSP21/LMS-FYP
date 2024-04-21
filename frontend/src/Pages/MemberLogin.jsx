@@ -17,50 +17,53 @@ const MemberLogin = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:5002/user/login', {
-        username,
-        password,
-      });
-  
-      const { success, message } = response.data;
-  
-      if (success) {
-        // Successful login
-        console.log('Login successful');
-  
-       
-        
-        
-        // Redirect users to their respective dashboards based on userType
-        const { token, userData } = response.data;
+        const response = await axios.post('http://localhost:5002/user/login', {
+            username,
+            password,
+        });
 
-if (userData.userType === 'member') {
-  localStorage.setItem('token', token);
-  localStorage.setItem('userData', JSON.stringify(userData)); // Stringify userData before saving to localStorage
-  toast('Login successful!', { type: 'success' });  
-  login(userData.userType, username, userData);
-  navigate('/Memberdashboard');
-}
-       
-         else {
-          // Handle unrecognized user type
-          console.error('Unauthorized: User type not recognized');
-          toast.error('Unauthorized: User type not recognized');
+        const { success, message, userData } = response.data;
+
+        if (success) {
+            // Successful login
+            console.log('Login successful');
+            // Display success toast message
+            toast.success('Login successful');
+
+            // Redirect users to their respective dashboards based on userType
+            const { token } = response.data;
+console.log(userData.userType)
+            if (userData.userType === 'member') {
+                localStorage.setItem('token', token);
+                localStorage.setItem('userData', JSON.stringify(userData)); // Stringify userData before saving to localStorage
+                // Redirect to Member dashboard
+                navigate('/Memberdashboard');
+
+            } else if (userData.userType === 'staff') {
+                  localStorage.setItem('token', token);
+                  localStorage.setItem('userData', JSON.stringify(userData)); // Stringify userData before saving to localStorage
+                  // Redirect to Member dashboard
+                  navigate('/staff-dashboard');
+            } else {
+                // Handle unrecognized user type
+                console.error('Unauthorized: User type not recognized');
+                toast.error('Unauthorized: User type not recognized');
+            }
+        } else {
+            // Login failed
+            toast.error(message); // Display error message as a toast
         }
-      } else {
-        // Login failed
-        toast.error(message); // Display error message as a toast
-      }
     } catch (error) {
-      console.error('Error:', error);
-  
-      if (error.response && error.response.status === 401) {
-        toast.error('Invalid credentials: Please check your username and password.');
-      } else {
-        toast.error('Internal Server Error');
-      }
+        console.error('Error:', error);
+
+        if (error.response && error.response.status === 401) {
+            toast.error('Invalid credentials: Please check your username and password.');
+        } else {
+            toast.error('Internal Server Error');
+        }
     }
-  };
+};
+
 
   return (
     <>
@@ -141,7 +144,7 @@ if (userData.userType === 'member') {
           height: 100%;
           object-fit: cover;
           position: absolute;
-          opacity: 0.8;
+          opacity: 0.7;
         }
         .header-content {
           position: absolute;
